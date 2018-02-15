@@ -41,6 +41,14 @@
         }
         return arr
    }
+   // check that the list of required operators is present
+   function checkRequiredOperators(arr, reqs) {
+        var matches = arr.filter(el => reqs.includes(el[0]))
+        if(matches.length !== reqs.length) {
+          error("Missing required fields");
+        }
+        return arr
+   }
    // check that a fieldPath starts with '$'
    function checkIsFieldPath(s) {
         if (s.charAt(0) !== '$') {
@@ -86,9 +94,10 @@ stage_syntax =
        / "{" skip         ":" positive_integer            "}"
        / "{" unwind       ":" unwind_document             "}"
        / "{" group        ":" group_document              "}"
-//       / "{" "$sample"     ":" sample_document            "}"
+       / "{" sample       ":" sample_document             "}"
+       / "{" currentOp    ":" currentOp_document          "}"
        / "{" sort         ":" sort_document               "}"
-//       / "{" "$geoNear"     ":" geoNear_document          "}"
+       / "{" geoNear      ":" geoNear_document            "}"
        / "{" lookup       ":" lookup_document             "}"
        / "{" out          ":" string                      "}" // TODO: check is valid collection?
        / "{" indexStats   ":" indexStats_document         "}"
@@ -97,17 +106,17 @@ stage_syntax =
 //       / "{" "$bucketAuto"     ":" bucketAuto_document    "}"
 //       / "{" "$sortByCount"     ":" sortByCount_document  "}"
        / "{" addFields   ":" addFields_document          "}"
-//       / "{" "$replaceRoot"     ":" replaceRoot_document  "}"
+       / "{" replaceRoot ":" replaceRoot_document        "}"
        / "{" count       ":" string                      "}"
 //       / "{" "$graphLookup"     ":" graphLookup_document  "}"
        
                      
 collStats "$collStats" = "$collStats" / "'$collStats'" { return '$collStats' } / '"$collStats"' { return '$collStats' }
-collStats_document     = "{" ci:collStats_item cArr:("," collStats_item)* ","? "}" 
+collStats_document     = "{" ci:collStats_item? cArr:("," collStats_item)* ","? "}"
                        { 
                            return [ci].concat(cleanAndFlatten(cArr)) 
                        }
-collStats_item = lt:latencyStats  ":" "{" h:histograms ":" b:boolean "}" 
+collStats_item = lt:latencyStats  ":" "{" h:histograms ":" b:boolean "}"
                 { 
                   var obj = {} 
                   obj[lt] = {}, 
@@ -186,7 +195,7 @@ preserveNullAndEmptyArrays 'preserveNullAndEmptyArrays'
 group "$group" = '"$group"' { return '$group' } / "'$group'" { return '$group' } / "$group"
 group_document ="{" g:group_item gArr:("," group_item)* ","? "}" 
                 { 
-                     return objOfArray([g].concat(cleanAndFlatten(gArr)))
+                     return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['_id']))
                 }
 group_item     = id ":" expression
                / f:field ":" "{" a:accumulator ":" e:expression "}" 
@@ -195,6 +204,31 @@ group_item     = id ":" expression
                      obj[a] = e
                      return [f, ":", obj]
                 }
+
+sample "$sample" = '"$sample"' { return '$sample' } / "'$sample'" { return '$sample' } / "$sample"
+size "size" = "size" / "'size'" { return 'size' } / '"size"' { return 'size' }
+sample_document ="{" size ":" i:positive_integer"}"
+
+currentOp "$currentOp" = '"$currentOp"' { return '$currentOp' } / "'$currentOp'" { return '$currentOp' } / "$currentOp"
+allUsers "allUsers" = "allUsers" / "'allUsers'" { return 'allUsers' } / '"allUsers"' { return 'allUsers' }
+idleConnections "idleConnections" = "idleConnections" / "'idleConnections'" { return 'idleConnections' } / '"idleConnections"' { return 'idleConnections' }
+currentOp_document     = "{" ci:currentOp_item? cArr:("," currentOp_item)* ","? "}"
+                       {
+                           return [ci].concat(cleanAndFlatten(cArr))
+                       }
+currentOp_item = au:allUsers ":" b:boolean
+                {
+                  var obj = {}
+                  obj[au] = b
+                  return obj
+                }
+               / ic:idleConnections ":" b:boolean
+                {
+                  var obj = {}
+                  obj[ic] = b
+                  return obj
+                }
+
 accumulator    = sum
                / avg
                / first
@@ -218,11 +252,57 @@ stdDevSamp "$stdDevSamp" = "$stdDevSamp" / "'$stdDevSamp'" { return '$stdDevSamp
 
 sort "$sort" = '"$sort"' { return '$sort' } / "'$sort'" { return '$sort' } / "$sort"
 // need grammar for all of sort, should support top level expressions ($and and $or)
-sort_document = "{" s:sort_item sArr:("," sort_item)* ","? "}" 
+sort_document = "{" s:sort_item sArr:("," sort_item)* ","? "}"
                     { 
                        return objOfArray([s].concat(cleanAndFlatten(sArr))) 
                     }
 sort_item = f:field ":" i:integer
+
+geoNear "$geoNear" = "$geoNear" / "'$geoNear'" { return '$geoNear' } / '"$geoNear"' { return '$geoNear' }
+
+geoNear_document ="{" g:geoNear_item gArr:("," geoNear_item)* ","? "}"
+  {
+    return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['near', 'distanceField']))
+  }
+
+geoNear_item = gn:near ":" b:boolean
+               / gdf:distanceField ":" s:string
+               / gs:spherical  ":" b:boolean
+               / gl:geoLimit ":" i:positive_integer
+               / gn:num ":" i:positive_integer
+               / gmd:maxDistance ":" n:number
+               / gq:query ":" m:match_document
+               / gdm:distanceMultiplier ":" n:number
+               / gu:uniqueDocs ":" b:boolean
+               / gi:includeLocs ":" s:string
+               / gnd:minDistance ":" n:number
+
+/* TODO: GeoJSON Point for near
+geoJSON_item = t:type ":" "Point"
+               / c:coordinates ":" "[" n1:number n2:number "]"
+geoJSON_document = "{" j1:geoJSON_item j2:geoJSON_item "}"
+  {
+    console.log([j1, j2])
+    return objOfArray(checkRequiredOperators([j1, j2], ['type', 'coordinates']))
+  }
+*/
+
+// Required
+near "near" = "near" / "'near'" { return 'near' } / '"near"' { return 'near' }
+distanceField "distanceField" = "distanceField" / "'distanceField'" { return 'distanceField' } / '"distanceField"' { return 'distanceField' }
+// Optional
+spherical "spherical" = "spherical" / "'spherical'" { return 'spherical' } / '"spherical"' { return 'spherical' }
+geoLimit "limit" = "limit" / "'limit'" { return 'limit' } / '"limit"' { return 'limit' }
+num "num" = "num" / "'num'" { return 'num' } / '"num"' { return 'num' }
+maxDistance "maxDistance" = "maxDistance" / "'maxDistance'" { return 'maxDistance' } / '"maxDistance"' { return 'maxDistance' }
+query "query" = "query" / "'query'" { return 'query' } / '"query"' { return 'query' }
+distanceMultiplier "distanceMultiplier" = "distanceMultiplier" / "'distanceMultiplier'" { return 'distanceMultiplier' } / '"distanceMultiplier"' { return 'distanceMultiplier' }
+uniqueDocs "uniqueDocs" = "uniqueDocs" / "'uniqueDocs'" { return 'uniqueDocs' } / '"uniqueDocs"' { return 'uniqueDocs' }
+includeLocs "includeLocs" = "includeLocs" / "'includeLocs'" { return 'includeLocs' } / '"includeLocs"' { return 'includeLocs' }
+minDistance "minDistance" = "minDistance" / "'minDistance'" { return 'minDistance' } / '"minDistance"' { return 'minDistance' }
+type "type" = "type" / "'type'" { return 'type' } / '"type"' { return 'type' }
+coordinates "coordinates" = "coordinates" / "'coordinates'" { return 'coordinates' } / '"coordinates"' { return 'coordinates' }
+
 
 lookup "$lookup" = '"$lookup"' { return '$lookup' } / "'$lookup'" { return '$lookup' } / "$lookup"
 lookup_document = "{" l:lookup_item lArr:("," lookup_item)* ","? "}" 
@@ -269,6 +349,10 @@ addFields_document = "{" a:addFields_item aArr:("," addFields_item)* ","? "}"
                        return objOfArray([a].concat(cleanAndFlatten(aArr))) 
                     }
 addFields_item = f:field ":" expression
+
+replaceRoot "$replaceRoot" = '"$replaceRoot"' { return '$replaceRoot' } / "'$replaceRoot'" { return '$replaceRoot' } / "$replaceRoot"
+newRoot "newRoot" = "newRoot" / "'newRoot'" { return 'newRoot' } / '"newRoot"' { return 'newRoot' }
+replaceRoot_document ="{" newRoot ":" o:object "}"
 
 count "$count" = '"$count"' { return '$count' } / "'$count'" { return '$count' } / "$count"
 
