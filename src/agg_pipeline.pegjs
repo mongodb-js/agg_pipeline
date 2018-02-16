@@ -94,8 +94,8 @@ stage = sts:stage_syntax {
 
 stage_syntax =
           "{" addFields         ":" addFields_document          "}"
-//      / "{" bucket            ":" bucket_document             "}"
-//      / "{" bucketAuto        ":" bucketAuto_document         "}"
+        / "{" bucket            ":" bucket_document             "}"
+        / "{" bucketAuto        ":" bucketAuto_document         "}"
         / "{" collStats         ":" collStats_document          "}"
         / "{" count             ":" string                      "}"
         / "{" currentOp         ":" currentOp_document          "}"
@@ -116,7 +116,7 @@ stage_syntax =
         / "{" sample            ":" sample_document             "}"
         / "{" skip              ":" positive_integer            "}"
         / "{" sort              ":" sort_document               "}"
-//      / "{" sortByCount       ":" sortByCount_document        "}"
+        / "{" sortByCount       ":" sortByCount_document        "}"
         / "{" unwind            ":" unwind_document             "}"
 
 
@@ -127,7 +127,42 @@ addFields_document = "{" a:addFields_item aArr:("," addFields_item)* ","? "}"
         return objOfArray([a].concat(cleanAndFlatten(aArr)))
     }
 
-// TODO: $bucket, $bucketAuto
+bucket "$bucket" = "$bucket" / "'$bucket'" { return '$bucket' } / '"$bucket"' { return '$bucket' }
+groupBy "groupBy" = "groupBy" / "'groupBy'" { return 'groupBy' } / '"groupBy"' { return 'groupBy' }
+boundaries "boundaries" = "boundaries" / "'boundaries'" { return 'boundaries' } / '"boundaries"' { return 'boundaries' }
+default "default" = "default" / "'default'" { return 'default' } / '"default"' { return 'default' }
+output "output" = "output" / "'output'" { return 'output' } / '"output"' { return 'output' }
+
+output_item = f:agg_field ":" "{" a:accumulator ":" e:agg_expression "}"
+     {
+        var obj = {}
+        obj[a] = e
+        return [f, ":", obj]
+     }
+output_doc = "{" g:output_item gArr:("," output_item)* ","? "}"
+    {
+        return objOfArray([g].concat(cleanAndFlatten(gArr)))
+    }
+bucket_item = groupBy ":" agg_expression
+            / boundaries ":" a:agg_array // TODO: complicated, not sure how specific we have to check for.
+            / default ":" l:literal
+            / output ":" output_doc
+bucket_document ="{" g:bucket_item gArr:("," bucket_item)* ","? "}"
+    {
+        return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['groupBy', 'boundaries']))
+    }
+
+bucketAuto "$bucketAuto" = "$bucketAuto" / "'$bucketAuto'" { return '$bucketAuto' } / '"$bucketAuto"' { return '$bucketAuto' }
+buckets "buckets" = "buckets" / "'buckets'" { return 'buckets' } / '"buckets"' { return 'buckets' }
+granularity "granularity" = "granularity" / "'granularity'" { return 'granularity' } / '"granularity"' { return 'granularity' }
+bucketAuto_item = groupBy ":" agg_expression
+                / output ":" output_doc
+                / buckets ":" number
+                / granularity ":" string
+bucketAuto_document ="{" g:bucketAuto_item gArr:("," bucketAuto_item)* ","? "}"
+    {
+        return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['groupBy', 'buckets']))
+    }
 
 collStats "$collStats" = "$collStats" / "'$collStats'" { return '$collStats' } / '"$collStats"' { return '$collStats' }
 latencyStats "latencyStats" = "latencyStats" / "'latencyStats'" { return 'latencyStats' } / '"latencyStats"' { return 'latencyStats' }
@@ -369,7 +404,14 @@ sort_document = "{" s:sort_item sArr:("," sort_item)* ","? "}"
         return objOfArray([s].concat(cleanAndFlatten(sArr)))
     }
 
-// TODO: $sortByCount
+sortByCount "$sortByCount"= '"$sortByCount"' { return '$sortByCount' } / "'$sortByCount'" { return '$sortByCount' }  / "$sortByCount"
+sbc_field = "$" field
+sbc_object_item = sbc_field ":" agg_expression
+sbc_object "AggObject" = "{" oi:sbc_object_item oiArr:("," sbc_object_item)* ","? "}"
+                 {
+                   return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
+                 }
+sortByCount_document = sbc_field / sbc_object
 
 unwind "$unwind"= '"$unwind"' { return '$unwind' } / "'$unwind'" { return '$unwind' }  / "$unwind"
 path                       'path'
@@ -545,6 +587,10 @@ agg_object "AggObject" = "{""}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
+operation "Operation"
+  = ["] str:(([^"\\] / "\\" $. )*) ["] { return str.map(cleanBackSlashes).join("") }
+  / ['] str:(([^'\\] / "\\" $. )*) ['] { return str.map(cleanBackSlashes).join("") }
+// TODO: start here, fix agg_field so that it has to start with $, fix sortByCount so it takes $
 
 field "Field Name" // TODO: better grammar for field names
   = f:[_A-Za-z] s:([_A-Za-z0-9]*) { return f + s.join("") }
@@ -568,6 +614,7 @@ boolean
   = "true" {return true} / "false" {return false} 
 
 null = "null" {return null}
-                                                         
+
+literal = string / number / boolean
                                                          
                                                          

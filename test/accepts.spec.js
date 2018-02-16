@@ -62,6 +62,28 @@ describe('#accepts', () => {
       });
     });
   });
+  describe('expressions with only expr', () => {
+    describe('$sortByCount', () => {
+      it('accepts a $fieldname', () => {
+        accepts('{$sortByCount: "$field"}');
+      });
+      it('rejects a fieldname without $', () => {
+        rejects('{$sortByCount: "field"}');
+      });
+      it('accepts an agg expression', () => {
+        accepts('{$sortByCount: {$mergeObjects: [\'$test\', \'$test2\']}}');
+      });
+      it('rejects a non-obj expression', () => {
+        rejects('{$sortByCount: [{$mergeObjects: [\'$test\', \'$test2\']}]}');
+      });
+      it('rejects an empty obj', () => {
+        rejects('{$sortByCount: {}}');
+      });
+      it('rejects a document literal', () => {
+        rejects('{$sortByCount: {test: "$testing"}}');
+      });
+    });
+  });
   describe('expressions with required set fields', () => {
     describe('$sample', () => {
       it('accepts a doc with size', () => {
@@ -381,6 +403,80 @@ describe('#accepts', () => {
         rejects('{$graphLookup: { from: "employees", startWith: "$reportsTo",' +
           'connectFromField: "reportsTo", connectToField: "name",' +
           'as: "reportingHierarchy", restrictSearchWithMatch: {x: {$literal: 1}}}}');
+      });
+    });
+    describe('$bucket', () => {
+      it('accepts min doc', () => {
+        accepts('{$bucket: {' +
+          'groupBy: "$fieldname",' +
+          'boundaries: [1,2],' +
+          '}}');
+      });
+      it('accepts an agg expr for groupBy', () => {
+        accepts('{$bucket: {' +
+          'groupBy: {$abs: 1},' +
+          'boundaries: [1,2],' +
+          '}}');
+      });
+      it('accepts full doc', () => {
+        accepts('{$bucket: {' +
+          'groupBy: "$fieldname",' +
+          'boundaries: [1,2],' +
+          'default: "a string",' +
+          'output: { output1: {$sum: 1}, output2: {$avg: 1} }' +
+          '}}');
+      });
+      it('accepts literal in boundaries', () => {
+        accepts('{$bucket: {' +
+          'groupBy: "$fieldname",' +
+          'boundaries: [{$literal: {x:1}}, {$literal: {x:2}}],' +
+          'default: "a string",' +
+          'output: { output1: {$sum: 1}, output2: {$avg: 1} }' +
+          '}}');
+      });
+      it('rejects without required fields', () => {
+        rejects('{$bucket: {' +
+          'boundaries: [1,2],' +
+          'default: "a string",' +
+          'output: { output1: {$sum: 1}, output2: {$avg: 1} }' +
+          '}}');
+      });
+    });
+    describe('$bucketAuto', () => {
+      it('accepts min doc', () => {
+        accepts('{$bucketAuto: {' +
+          'groupBy: "$fieldname",' +
+          'buckets: 10' +
+          '}}');
+      });
+      it('accepts an agg expr for groupBy', () => {
+        accepts('{$bucketAuto: {' +
+          'groupBy: {$abs: 1},' +
+          'buckets: 10' +
+          '}}');
+      });
+      it('accepts full doc', () => {
+        accepts('{$bucketAuto: {' +
+          'groupBy: "$fieldname",' +
+          'buckets: 10,' +
+          'granularity: "R80",' +
+          'output: { output1: {$sum: 1}, output2: {$avg: 1} }' +
+          '}}');
+      });
+      it('accepts literal in boundaries', () => {
+        accepts('{$bucketAuto: {' +
+          'groupBy: "$fieldname",' +
+          'buckets: 10,' +
+          'granularity: "R80",' +
+          'output: { output1: {$sum: 1}, output2: {$avg: 1} }' +
+          '}}');
+      });
+      it('rejects without required fields', () => {
+        rejects('{$bucketAuto: {' +
+          'buckets: 10,' +
+          'granularity: "R80",' +
+          'output: { output1: {$sum: 1}, output2: {$avg: 1} }' +
+          '}}');
       });
     });
   });
