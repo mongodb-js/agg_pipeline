@@ -265,7 +265,7 @@ geoNear_document ="{" g:geoNear_item gArr:("," geoNear_item)* ","? "}"
     return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['near', 'distanceField']))
   }
 
-geoNear_item = gn:near ":" b:boolean
+geoNear_item = gn:near ":" gni:near_item
                / gdf:distanceField ":" s:string
                / gs:spherical  ":" b:boolean
                / gl:geoLimit ":" i:positive_integer
@@ -277,20 +277,17 @@ geoNear_item = gn:near ":" b:boolean
                / gi:includeLocs ":" s:string
                / gnd:minDistance ":" n:number
 
-/* TODO: GeoJSON Point for near
-geoJSON_item = t:type ":" "Point"
-               / c:coordinates ":" "[" n1:number n2:number "]"
-geoJSON_document = "{" j1:geoJSON_item j2:geoJSON_item "}"
+geoJSON_item = t:type ":" point
+               / c:coordinates ":" "[" n1:number "," n2:number "]"
+geoJSON_document = "{" j1:geoJSON_item "," j2:geoJSON_item "}"
   {
-    console.log([j1, j2])
     return objOfArray(checkRequiredOperators([j1, j2], ['type', 'coordinates']))
   }
-*/
+legacy_coordinates = "[" n1:number "," n2:number "]"
+near_item = geoJSON_document / legacy_coordinates
 
-// Required
 near "near" = "near" / "'near'" { return 'near' } / '"near"' { return 'near' }
 distanceField "distanceField" = "distanceField" / "'distanceField'" { return 'distanceField' } / '"distanceField"' { return 'distanceField' }
-// Optional
 spherical "spherical" = "spherical" / "'spherical'" { return 'spherical' } / '"spherical"' { return 'spherical' }
 geoLimit "limit" = "limit" / "'limit'" { return 'limit' } / '"limit"' { return 'limit' }
 num "num" = "num" / "'num'" { return 'num' } / '"num"' { return 'num' }
@@ -302,6 +299,7 @@ includeLocs "includeLocs" = "includeLocs" / "'includeLocs'" { return 'includeLoc
 minDistance "minDistance" = "minDistance" / "'minDistance'" { return 'minDistance' } / '"minDistance"' { return 'minDistance' }
 type "type" = "type" / "'type'" { return 'type' } / '"type"' { return 'type' }
 coordinates "coordinates" = "coordinates" / "'coordinates'" { return 'coordinates' } / '"coordinates"' { return 'coordinates' }
+point "Point" = "'Point'" { return 'Point' } / '"Point"' { return 'Point' }
 
 
 lookup "$lookup" = '"$lookup"' { return '$lookup' } / "'$lookup'" { return '$lookup' } / "$lookup"
@@ -393,7 +391,7 @@ string "String"
 
 
 // Float must come before integer or integer will be matched when floats occur
-number "Number" = digits:[0-9]+ '.' fraction:[0-9]* { return parseFloat(digits.join("") + '.' + fraction.join("")) }
+number "Number" = "-"? digits:[0-9]+ '.' fraction:[0-9]* { return parseFloat(digits.join("") + '.' + fraction.join("")) }
        / integer
 
 integer "Integer" = positive_integer / "-" i:positive_integer { return -1 * i }

@@ -184,8 +184,7 @@ describe('#accepts', () => {
             'query: {x: 1},' +
             'distanceMultiplier: 100,' +
             'includeLocs: "outputfield",' +
-            // 'near: {type: "Point", coordinates: [10.01, 9.99]}' +
-            'near: true' + // TODO
+            'near: {type: "Point", coordinates: [10.01, 9.99]}' +
           '}}');
       });
       it('rejects a doc without near', () => {
@@ -220,7 +219,9 @@ describe('#accepts', () => {
       });
       it('accepts the two required', () => {
         accepts(
-          '{$geoNear: { near: true, distanceField: "field" } }'
+          '{$geoNear: { ' +
+          'near: {type: "Point", coordinates: [10.01, 9.99]},' +
+          'distanceField: "field" } }'
         );
       });
       it('rejects the two required if type wrong', () => {
@@ -232,6 +233,47 @@ describe('#accepts', () => {
         rejects(
           '{$geoNear: { near: true, distanceField: "field", query: 1 } }'
         );
+      });
+      describe('near', () => {
+        it('rejects non-point geoJSON for near', () => {
+          rejects(
+            '{$geoNear: { ' +
+            'near: ' +
+            '{ type: "LineString", coordinates: [ [ 40, 5 ], [ 41, 6 ] ] }' +
+            ', distanceField: "field" } }'
+          );
+        });
+        it('rejects bad geoJSON', () => {
+          rejects(
+            '{$geoNear: { ' +
+            'near: {type: "Point", coordinates: [ -9.99 ]},' +
+            'distanceField: "field" } }'
+          );
+        });
+        it('rejects non-geoJSON for near', () => {
+          rejects(
+            '{$geoNear: { ' +
+            'near: ' +
+            '{ x: 1}' +
+            ', distanceField: "field" } }'
+          );
+        });
+        it('accepts legacy coordinates', () => {
+          accepts(
+            '{$geoNear: { ' +
+            'near: ' +
+            '[ 10.0001, -33.900 ]' +
+            ', distanceField: "field" } }'
+          );
+        });
+        it('rejects bad legacy coordinates', () => {
+          rejects(
+            '{$geoNear: { ' +
+            'near: ' +
+            '[ -33.900 ]' +
+            ', distanceField: "field" } }'
+          );
+        });
       });
     });
   });
