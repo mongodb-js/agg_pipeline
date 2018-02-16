@@ -94,14 +94,14 @@ stage = sts:stage_syntax {
 
 stage_syntax =
           "{" addFields         ":" addFields_document          "}"
-//      / "{" "$bucket"         ":" bucket_document             "}"
-//      / "{" "$bucketAuto"     ":" bucketAuto_document         "}"
+//      / "{" bucket            ":" bucket_document             "}"
+//      / "{" bucketAuto        ":" bucketAuto_document         "}"
         / "{" collStats         ":" collStats_document          "}"
         / "{" count             ":" string                      "}"
         / "{" currentOp         ":" currentOp_document          "}"
 //      / "{" "$facet"          ":" facet_document              "}"
         / "{" geoNear           ":" geoNear_document            "}"
-//      / "{" "$graphLookup"    ":" graphLookup_document        "}"
+//      / "{" graphLookup       ":" graphLookup_document        "}"
         / "{" group             ":" group_document              "}"
         / "{" indexStats        ":" indexStats_document         "}"
         / "{" limit             ":" positive_integer            "}"
@@ -116,7 +116,7 @@ stage_syntax =
         / "{" sample            ":" sample_document             "}"
         / "{" skip              ":" positive_integer            "}"
         / "{" sort              ":" sort_document               "}"
-//      / "{" "$sortByCount"    ":" sortByCount_document        "}"
+//      / "{" sortByCount       ":" sortByCount_document        "}"
         / "{" unwind            ":" unwind_document             "}"
 
 
@@ -181,11 +181,11 @@ distanceField "distanceField" = "distanceField" / "'distanceField'" { return 'di
 spherical "spherical" = "spherical" / "'spherical'" { return 'spherical' } / '"spherical"' { return 'spherical' }
 geoLimit "limit" = "limit" / "'limit'" { return 'limit' } / '"limit"' { return 'limit' }
 num "num" = "num" / "'num'" { return 'num' } / '"num"' { return 'num' }
-maxDistance "maxDistance" = "maxDistance" / "'maxDistance'" { return 'maxDistance' } / '"maxDistance"' { return 'maxDistance' }
 query "query" = "query" / "'query'" { return 'query' } / '"query"' { return 'query' }
 distanceMultiplier "distanceMultiplier" = "distanceMultiplier" / "'distanceMultiplier'" { return 'distanceMultiplier' } / '"distanceMultiplier"' { return 'distanceMultiplier' }
 uniqueDocs "uniqueDocs" = "uniqueDocs" / "'uniqueDocs'" { return 'uniqueDocs' } / '"uniqueDocs"' { return 'uniqueDocs' }
 includeLocs "includeLocs" = "includeLocs" / "'includeLocs'" { return 'includeLocs' } / '"includeLocs"' { return 'includeLocs' }
+maxDistance "maxDistance" = "maxDistance" / "'maxDistance'" { return 'maxDistance' } / '"maxDistance"' { return 'maxDistance' }
 minDistance "minDistance" = "minDistance" / "'minDistance'" { return 'minDistance' } / '"minDistance"' { return 'minDistance' }
 type "type" = "type" / "'type'" { return 'type' } / '"type"' { return 'type' }
 coordinates "coordinates" = "coordinates" / "'coordinates'" { return 'coordinates' } / '"coordinates"' { return 'coordinates' }
@@ -270,18 +270,12 @@ lookup_document = "{" l:lookup_item lArr:("," lookup_item)* ","? "}"
         return objOfArray([l].concat(cleanAndFlatten(lArr)))
     }
 
-// This allows way more than a $match actually allows.  It might make sense to either check the AST
-// for operators that aren't allowed in match, or to define this more particularly.  This is a good start.
+// Match accepts only query operator syntax and document literals.
 match "$match" = '"$match"' { return '$match' } / "'$match'" { return '$match' } / "$match"
-and  "$and"  = '"$and"'  { return '$and'   }  / "'$and'"    { return '$and'   }  / "$and"
-or   "$or"   = '"$or"'   { return '$or'    }  / "'$or'"     { return '$or'    }  / "$or"
-// Yes, $expr actually allows any expression, and basically anything that isn't a document, 0, or false always
-// results in matching everything
-expr "$expr" = '"$expr"' { return '$expr'  }  / "'$expr'"   { return '$expr'  }  / "$expr"
-match_item = field ":" expression
-           / and   ":" array
-           / or    ":" array
-           / expr  ":" expression
+match_item = field ":" query_expression
+           / and   ":" query_array
+           / or    ":" query_array
+           / expr  ":" query_expression
 match_document = "{" "}"
     {
         return {}
@@ -360,6 +354,8 @@ unwind_document = s:string
 // expressions //
 /////////////////
 
+// TODO: handle field paths, i.e. fields with $ prefixed
+
 accumulator    = sum
                / avg
                / first
@@ -381,6 +377,65 @@ addToSet   "$addToSet"   = "$addToSet"   / "'$addToSet'"   { return '$addToSet' 
 stdDevPop  "$stdDevPop"  = "$stdDevPop"  / "'$stdDevPop'"  { return '$stdDevPop' } / '"$stdDevPop"' { return '$stdDevPop' }
 stdDevSamp "$stdDevSamp" = "$stdDevSamp" / "'$stdDevSamp'" { return '$stdDevSamp'} / '"$stdDevSamp"'{ return '$stdDevSamp'}
 
+query_operator = comp_op
+                / log_op
+                / element_op
+                / eval_op
+                / geo_op
+                / array_op
+                / bit_op
+                / array_op
+                / comment
+                / project_op
+                / field // TODO: needed?
+
+comp_op  = eq / gte / gt / in / lte / lt / ne / nin
+log_op = and / not / nor / or
+element_op = exists / typeOp
+eval_op = expr / jsonSchema / mod / regex / text / where
+geo_op = geoIntersects / geoWithin / nearSphere / nearOp / minDistanceOp / maxDistanceOp / geometry
+array_op = all / elemMatch / sizeOp
+bit_op = bitsAllClear / bitsAllSet / bitsAnyClear / bitsAnySet
+project_op = elemMatch / metaOp / slice  // TODO: $
+
+lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / '"$lte"'      { return '$lte'      }
+gte        "$gte"       = "$gte"       / "'$gte'"       { return '$gte'     } / '"$gte"'      { return '$gte'      }
+eq         "$eq"        = "$eq"        / "'$eq'"        { return '$eq'      } / '"$eq"'       { return '$eq'       }
+gt         "$gt"        = "$gt"        / "'$gt'"        { return '$gt'      } / '"$gt"'       { return '$gt'       }
+in         "$in"        = "$in"        / "'$in'"        { return '$in'      } / '"$in"'       { return '$in'       }
+lt         "$lt"        = "$lt"        / "'$lt'"        { return '$lt'      } / '"$lt"'       { return '$lt'       }
+ne         "$ne"        = "$ne"        / "'$ne'"        { return '$ne'      } / '"$ne"'       { return '$ne'       }
+nin        "$nin"       = "$nin"       / "'$nin'"       { return '$nin'     } / '"$nin"'      { return '$nin'      }
+and        "$and"       = "$and"       / "'$and'"       { return '$and'     } / '"$and"'      { return '$and'      }
+or         "$or"        = "$or"        / "'$or'"        { return '$or'      } / '"$or"'       { return '$or'       }
+not        "$not"       = "$not"       / "'$not'"       { return '$not'     } / '"$not"'      { return '$not'      }
+nor        "$nor"       = "$nor"       / "'$nor'"       { return '$nor'     } / '"$nor"'      { return '$nor'      }
+exists     "$exists"    = "$exists"    / "'$exists'"    { return '$exists'  } / '"$exists"'   { return '$exists'   }
+typeOp     "$type"      = "$type"      / "'$type'"      { return '$type'    } / '"$type"'     { return '$type'     }
+expr       "$expr"      = "$expr"      / "'$expr'"      { return '$expr'    } / '"$expr"'     { return '$expr'     }
+mod        "$mod"       = "$mod"       / "'$mod'"       { return '$mod'     } / '"$mod"'      { return '$mod'      }
+regex      "$regex"     = "$regex"     / "'$regex'"     { return '$regex'   } / '"$regex"'    { return '$regex'    }
+text       "$text"      = "$text"      / "'$text'"      { return '$text'    } / '"$text"'     { return '$text'     }
+where      "$where"     = "$where"     / "'$where'"     { return '$where'   } / '"$where"'    { return '$where'    }
+nearSphere      "$nearSphere"    = "$nearSphere"    / "'$nearSphere'"    { return '$nearSphere' }    / '"$nearSphere"'    { return '$nearSphere'    }
+nearOp     "$near"      = "$near"      / "'$near'"      { return '$near'    } / '"$near"'     { return '$near'     }
+all        "$all"       = "$all"       / "'$all'"       { return '$all'     } / '"$all"'      { return '$all'      }
+sizeOp     "$size"      = "$size"      / "'$size'"      { return '$size'    } / '"$size"'     { return '$size'     }
+metaOp     "$meta"      = "$meta"      / "'$meta'"      { return '$meta'    } / '"$meta"'     { return '$meta'     }
+slice      "$slice"     = "$slice"     / "'$slice'"     { return '$slice'   } / '"$slice"'    { return '$slice'    }
+comment    "$comment"   = "$comment"   / "'$comment'"   { return '$comment' } / '"$comment"'  { return '$comment'  }
+jsonSchema      "$jsonSchema"    = "$jsonSchema"    / "'$jsonSchema'"    { return '$jsonSchema' }    / '"$jsonSchema"'    { return '$jsonSchema'    }
+elemMatch       "$elemMatch"     = "$elemMatch"     / "'$elemMatch'"     { return '$elemMatch' }     / '"$elemMatch"'     { return '$elemMatch'     }
+geoIntersects   "$geoIntersects" = "$geoIntersects" / "'$geoIntersects'" { return '$geoIntersects' } / '"$geoIntersects"' { return '$geoIntersects' }
+geoWithin       "$geoWithin"     = "$geoWithin"     / "'$geoWithin'"     { return '$geoWithin' }     / '"$geoWithin"'     { return '$geoWithin'     }
+geometry        "$geometry"      = "$geometry"      / "'$geometry'"      { return '$geometry' }      / '"$geometry"'      { return '$geometry'      }
+minDistanceOp   "$minDistance"   = "$minDistance"   / "'$minDistance'"   { return '$minDistance' }   / '"$minDistance"'   { return '$minDistance'   }
+maxDistanceOp   "$maxDistance"   = "$maxDistance"   / "'$maxDistance'"   { return '$maxDistance' }   / '"$maxDistance"'   { return '$maxDistance'   }
+bitsAllSet      "$bitsAllSet"    = "$bitsAllSet"    / "'$bitsAllSet'"    { return '$bitsAllSet' }    / '"$bitsAllSet"'    { return '$bitsAllSet'    }
+bitsAnySet      "$bitsAnySet"    = "$bitsAnySet"    / "'$bitsAnySet'"    { return '$bitsAnySet' }    / '"$bitsAnySet"'    { return '$bitsAnySet'    }
+bitsAllClear    "$bitsAllClear"  = "$bitsAllClear"  / "'$bitsAllClear'"  { return '$bitsAllClear' }  / '"$bitsAllClear"'  { return '$bitsAllClear'  }
+bitsAnyClear    "$bitsAnyClear"  = "$bitsAnyClear"  / "'$bitsAnyClear'"  { return '$bitsAnyClear' }  / '"$bitsAnyClear"'  { return '$bitsAnyClear'  }
+
 
 // A few contexts allow only id.  Note that a context requiring id must come before field
 // in alternatives because field will also match id.  PEGs process alternatives in left to right
@@ -390,9 +445,12 @@ id "_id" = '_id' / "'_id'" { return '_id' } / '"_id"' { return '_id' }
 // TODO: Need to expand what can be an expression, need to add dates and whatnot
 // (though these could just be checked in AST) let/map/functions/etc 
 expression = number / string / boolean / null / array / object
+// Expression that can include query operators
+query_expression = e:expression / e:query_object / e:query_array {console.log(e)}
 
 // This is odd, but there's no other good way to allow for the optional trailing comma
-array  "Array" = "[""]" 
+/* Document literals */
+array  "Array" = "[""]"
                  { return [] }
                / "[" e:expression eArr:("," expression)* ","? "]"
                  { return [e].concat(cleanAndFlatten(eArr)) }
@@ -404,6 +462,23 @@ object "Object" = "{""}"
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr))) 
                  }
 object_item = f:field ":" e:expression
+
+/* Any query expression */
+query_array  "QueryArray" = "[""]"
+                 { return [] }
+               / "[" e:expression eArr:("," expression)* ","? "]"
+               / "[" e:query_expression eArr:("," query_expression)* ","? "]"
+                 {
+                    return [e].concat(cleanAndFlatten(eArr))
+                 }
+query_object "QueryObject" = "{""}"
+                 { return {} }
+                / "{" oi:object_item oiArr:("," object_item)* ","? "}"
+                / "{" oi:query_object_item oiArr:("," query_object_item)* ","? "}"
+                 {
+                   return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
+                 }
+query_object_item = f:query_operator ":" e:query_expression
 
 field "Field Name" // TODO: better grammar for field names
   = f:[_A-Za-z] s:([_A-Za-z0-9]*) { return f + s.join("") }

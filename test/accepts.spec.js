@@ -169,6 +169,28 @@ describe('#accepts', () => {
           '}}'
         );
       });
+      it('supports let and pipeline', () => {
+        accepts('{$lookup:' +
+          '{\n' +
+          '           from: "warehouses",\n' +
+          '           let: { order_item: "$item", order_qty: "$ordered" },\n' +
+          '           pipeline: [\n' +
+          '              { $match:\n' +
+          '                 { $expr:\n' +
+          '                    { $and:\n' +
+          '                       [\n' +
+          '                         { $eq: [ "$stock_item",  "$$order_item" ] },\n' +
+          '                         { $gte: [ "$instock", "$$order_qty" ] }\n' +
+          '                       ]\n' +
+          '                    }\n' +
+          '                 }\n' +
+          '              },\n' +
+          '              { $project: { stock_item: 0, _id: 0 } }\n' +
+          '           ],\n' +
+          '           as: "stockdata"\n' +
+          '         }' +
+          '}');
+      });
     });
     describe('$geoNear', () => {
       it('accepts full doc', () => {
@@ -322,7 +344,7 @@ describe('#accepts', () => {
     });
   });
 
-  describe('expressions with fieldnames', () => {
+  describe('expressions with unset fields', () => {
     describe('$addFields', () => {
       it('accepts multiple fields', () => {
         accepts('{$addFields: {' +
@@ -385,6 +407,158 @@ describe('#accepts', () => {
           '}}');
       });
     });
+    describe('$match', () => {
+      it('accepts a simple document', () => {
+        accepts('{$match: {' +
+          'x: 1, y: {q: 1}, z: "testing"' +
+          '}}');
+      });
+      it('accepts a nested field', () => {
+        accepts('{$match: {' +
+          '"x.y.z": 1, y: {q: 1}, z: "testing"' +
+          '}}');
+      });
+      it('accepts $or', () => {
+        accepts('{$match: {' +
+          '$or: [{x:1}, {y: 1}]' +
+          '}}');
+      });
+      it('accepts $and', () => {
+        accepts('{$match: {' +
+          '$and: [{z: 30}, {r: 99}]' +
+          '}}');
+      });
+      it('accepts an empty document', () => {
+        accepts('{$match: {' +
+          '' +
+          '}}');
+      });
+      it('accepts accumulators within $or', () => {
+        accepts('{$match: {' +
+            '$or: [' +
+              '{ score: { $gt: 70, $lt: 90 } },' +
+              '{ x: { $lt: 70 } }' +
+            ']' +
+          '}}');
+      });
+      it('accepts query operators', () => {
+        accepts('{ $match: { x: { $gt: 70 } } }');
+      });
+    });
+  });
+  
+  describe('Query operators', () => {
+    describe('$match', () => {
+      it('accepts query operators', () => {
+        accepts('{' +
+          '$match: {' +
+            '$or: [ ' +
+              '{ score: { $gt: 70, $lt: 90 } },' +
+              '{ views: { $gte: 1000 } } ' +
+            '],' +
+            '$and: [ ' +
+              '{ score: { $gt: 70, $lt: 90 } },' +
+              '{ views: { $gte: 1000 } } ' +
+            '],' +
+            'value: { $exists: "x" }' +
+          '}' +
+        '}');
+      });
+      it('accepts all operators', () => {
+        accepts('{' +
+          '$match: {' +
+            'a: {$eq: 1}, b: {$gt: 1}, c: {$gte: 1}, d: {$in: 1}, e: {$lt: 1}, f: {$lte: 1}, g: {$ne: 1}, f: {$nin: 1},' +
+            'g: {$and: 1}, h: {$or: 1}, i: {$not: 1}, j: {$nor: 1},' +
+            'k: {$exists: 1}, l: {$type: 1},' +
+            'm: {$expr: 1}, n: {$jsonSchema: 1}, o: {$mod: 1}, p: {$regex: 1}, q: {$text: 1}, r: {$where: 1},' +
+            's: {$geoIntersects: 1}, t: {$geoWithin: 1},' +
+            // 'v: {$nearSphere: 1}, u: {$near: 1},' + // TODO: FIX NEAR. Prevent $geoNear from taking $near in query.
+            'w: {$all: 1}, x: {$elemMatch: 1}, y: {$size: 1},' +
+            'z: {$bitsAllClear: 1}, a1: {$bitsAllSet: 1}, b1: {$bitsAnyClear: 1}, c1: {$bitsAnySet: 1},' +
+            'd1: {$comment: 1},' +
+            'e1: {$elemMatch: 1}, f1: {$meta: 1}, g1: {$slice: 1},' +
+          '}}');
+      });
+      // it('accepts $near', () => {
+      //   accepts('{' +
+      //      '$match: {' +
+      //       'location: {' +
+      //         '$near: 1' +
+      //         // '{' +
+      //           // '$geometry: { type: "Point", coordinates: [ 100, 101] },' +
+      //           // '$maxDistance: 100,' +
+      //           // '$minDistance: 10' +
+      //         // '}' +
+      //        '}' +
+      //      '}}'
+      //   );
+      // });
+      it('rejects aggregation operators', () => {
+        rejects('{' +
+          '$match: {' +
+              '$abs: 100' +
+          '}}');
+      });
+      it('rejects field path', () => {
+        rejects('{' +
+          '$match: {' +
+            '$field.subfield: 100' +
+          '}}');
+      });
+    });
+    describe('$geoNear', () => {
+      it('accepts query operators', () => {
+        accepts('{$geoNear: {' +
+          'near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },\n' +
+          'distanceField: "dist.calculated",\n' +
+          'maxDistance: 2,\n' +
+          'query: {' +
+          '$or: [ ' +
+          '{ score: { $gt: 70, $lt: 90 } },' +
+          '{ views: { $gte: 1000 } } ' +
+          '],' +
+          '$and: [ ' +
+          '{ score: { $gt: 70, $lt: 90 } },' +
+          '{ views: { $gte: 1000 } } ' +
+          '],' +
+          'value: { $exists: "x" }' +
+          ' },\n' +
+          'includeLocs: "dist.location",\n' +
+          'num: 5,\n' +
+          'spherical: true' +
+          '}}');
+      });
+      it('rejects agg operators', () => {
+        rejects('{$geoNear: {' +
+          'near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },\n' +
+          'distanceField: "dist.calculated",\n' +
+          'query: {' +
+            '$abs: 100' +
+          '},\n' +
+          '}}');
+      });
+      it('rejects field path', () => {
+        rejects('{$geoNear: {' +
+          'near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },\n' +
+          'distanceField: "dist.calculated",\n' +
+          'query: {' +
+            '$fieldname.newField: 100' +
+          '},\n' +
+          '}}');
+      });
+      it('rejects $near', () => {
+        rejects('{$geoNear: {' +
+          'near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },\n' +
+          'distanceField: "dist.calculated",\n' +
+          'query: {' +
+            '$near: {' +
+              '$geometry: {type: "Point" , coordinates: [ 100, 101] },' +
+              '$maxDistance: 100,' +
+              '$minDistance: 100' +
+            '}' +
+          '}}}');
+      });
+    });
   });
 
   describe('Invalid stage', () => {
@@ -403,9 +577,6 @@ describe('#accepts', () => {
     it('rejects a pipeline', () => {
       rejects('[{$match: {x: 1}}, {$sort: 1}]');
     });
-    // it('rejects a ', () => {
-    //   rejects('');
-    // });
   });
 });
 
