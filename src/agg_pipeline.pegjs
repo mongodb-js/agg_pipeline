@@ -121,7 +121,7 @@ stage_syntax =
 
 
 addFields "$addFields" = '"$addFields"' { return '$addFields' } / "'$addFields'" { return '$addFields' } / "$addFields"
-addFields_item = f:field ":" expression
+addFields_item = f:field ":" agg_expression
 addFields_document = "{" a:addFields_item aArr:("," addFields_item)* ","? "}"
     {
         return objOfArray([a].concat(cleanAndFlatten(aArr)))
@@ -217,8 +217,8 @@ geoNear_document ="{" g:geoNear_item gArr:("," geoNear_item)* ","? "}"
 // TODO: $graphLookup
 
 group "$group" = '"$group"' { return '$group' } / "'$group'" { return '$group' } / "$group"
-group_item = id ":" expression
-           / f:field ":" "{" a:accumulator ":" e:expression "}"
+group_item = id ":" agg_expression
+           / f:field ":" "{" a:accumulator ":" e:agg_expression "}"
             {
                 var obj = {}
                 obj[a] = e
@@ -287,6 +287,7 @@ match_document = "{" "}"
 
 out "out" = '"$out"' { return '$out' } / "'$out'" { return '$out' } / "$out"
 
+// TODO: can't use dot notation when in a nested document when projecting
 project "$project"= '"$project"' { return '$project' } / "'$project'" { return '$project' } / "$project"
 project_item =   i:id    ":" e:("0" / "false" / "1" / "true")              { return [i, ':', toBool(e)] }
                / f:field ":" e:("0" / "false" / "1" / "true" / expression) { return [f, ':', toBool(e)] }
@@ -300,7 +301,7 @@ project_document  = "{" s:project_item sArr:("," project_item)* ","? "}"
 
 replaceRoot "$replaceRoot" = '"$replaceRoot"' { return '$replaceRoot' } / "'$replaceRoot'" { return '$replaceRoot' } / "$replaceRoot"
 newRoot "newRoot" = "newRoot" / "'newRoot'" { return 'newRoot' } / '"newRoot"' { return 'newRoot' }
-replaceRoot_document ="{" newRoot ":" o:object "}"
+replaceRoot_document ="{" newRoot ":" o:agg_object "}"
 
 
 sample "$sample" = '"$sample"' { return '$sample' } / "'$sample'" { return '$sample' } / "$sample"
@@ -445,8 +446,12 @@ id "_id" = '_id' / "'_id'" { return '_id' } / '"_id"' { return '_id' }
 // TODO: Need to expand what can be an expression, need to add dates and whatnot
 // (though these could just be checked in AST) let/map/functions/etc 
 expression = number / string / boolean / null / array / object
+
 // Expression that can include query operators
-query_expression = e:expression / e:query_object / e:query_array {console.log(e)}
+query_expression = expression / query_object / query_array
+
+// Expression that can include aggregation operators
+agg_expression = query_expression / agg_object / agg_array
 
 // This is odd, but there's no other good way to allow for the optional trailing comma
 /* Document literals */
@@ -464,6 +469,7 @@ object "Object" = "{""}"
 object_item = f:field ":" e:expression
 
 /* Any query expression */
+query_object_item = f:query_operator ":" e:query_expression
 query_array  "QueryArray" = "[""]"
                  { return [] }
                / "[" e:expression eArr:("," expression)* ","? "]"
@@ -478,7 +484,24 @@ query_object "QueryObject" = "{""}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
-query_object_item = f:query_operator ":" e:query_expression
+
+/* Any aggregation expression */
+agg_field = "$"? field
+agg_object_item = f:agg_field ":" agg_expression
+agg_array  "AggArray" = "[""]"
+                 { return [] }
+               / "[" e:expression eArr:("," expression)* ","? "]"
+               / "[" e:agg_expression eArr:("," agg_expression)* ","? "]"
+                 {
+                    return [e].concat(cleanAndFlatten(eArr))
+                 }
+agg_object "AggObject" = "{""}"
+                 { return {} }
+                / "{" oi:object_item oiArr:("," object_item)* ","? "}"
+                / "{" oi:agg_object_item oiArr:("," agg_object_item)* ","? "}"
+                 {
+                   return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
+                 }
 
 field "Field Name" // TODO: better grammar for field names
   = f:[_A-Za-z] s:([_A-Za-z0-9]*) { return f + s.join("") }

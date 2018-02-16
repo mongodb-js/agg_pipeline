@@ -96,6 +96,9 @@ describe('#accepts', () => {
       it('rejects a doc with a non-doc newRoot', () => {
         rejects('{ $replaceRoot: { newRoot: 10}}');
       });
+      it('accepts an agg expr', () => { // TODO: validate that expr resolves to document?
+        accepts('{ $replaceRoot: { "newRoot": {$abs: 10} } }');
+      });
     });
   });
   describe('expressions with optional set fields', () => {
@@ -312,6 +315,12 @@ describe('#accepts', () => {
     it('rejects a group that is not an accumulator', () => {
       rejects('{ $group: { _id: 1, field1: 1 } }');
     });
+    it('accepts an agg expr for _id', () => {
+      accepts('{ $group: { _id: {$abs: 1}, field1: { $sum: "field" } } }');
+    });
+    it('accepts an agg expr for accumulator', () => {
+      accepts('{ $group: { _id: {$abs: 1}, field1: { $sum: {$abs: 1} } } }');
+    });
   });
 
   describe('expressions with multiple options', () => {
@@ -364,6 +373,11 @@ describe('#accepts', () => {
       });
       it('rejects non-doc', () => {
         rejects('{$addField: "test"}');
+      });
+      it('accepts agg expr', () => {
+        accepts('{$addFields: {' +
+          'field1: {$abs: 100},' +
+          '}}');
       });
     });
     describe('$sort', () => {
@@ -445,8 +459,45 @@ describe('#accepts', () => {
         accepts('{ $match: { x: { $gt: 70 } } }');
       });
     });
+    describe('$project', () => {
+      it('accepts a included field', () => {
+        accepts('{$project: {' +
+            'testfield: 1,' +
+            'testfield2: true' +
+          '}}');
+      });
+      it('accepts a excluded field', () => {
+        accepts('{$project: {' +
+          'testfield: 0,' +
+          'testfield: false,' +
+          '}}');
+      });
+      it('accepts a excluded _id field', () => {
+        accepts('{$project: {' +
+          '_id: 0,' +
+          '}}');
+      });
+      it('accepts an agg expr', () => {
+        accepts('{$project: {' +
+          'field: {"$literal": "testing"},' +
+          '}}');
+      });
+      it('accepts an arbitrary $ field', () => {
+        accepts('{$project: {' +
+          'field: {"$testing": "testing"},' +
+          '}}');
+      });
+      it('accepts nested field', () => {
+        accepts('{$project: {' +
+          '"field.nested": {"$testing": "testing"},' + // TODO: need to be supported without quotation?
+          '}}');
+      });
+      it('rejects empty doc', () => {
+        rejects('{$project{}}');
+      });
+    });
   });
-  
+
   describe('Query operators', () => {
     describe('$match', () => {
       it('accepts query operators', () => {
