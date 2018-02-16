@@ -99,9 +99,9 @@ stage_syntax =
         / "{" collStats         ":" collStats_document          "}"
         / "{" count             ":" string                      "}"
         / "{" currentOp         ":" currentOp_document          "}"
-//      / "{" "$facet"          ":" facet_document              "}"
+//      / "{" facet             ":" facet_document              "}"
         / "{" geoNear           ":" geoNear_document            "}"
-//      / "{" graphLookup       ":" graphLookup_document        "}"
+        / "{" graphLookup       ":" graphLookup_document        "}"
         / "{" group             ":" group_document              "}"
         / "{" indexStats        ":" indexStats_document         "}"
         / "{" limit             ":" positive_integer            "}"
@@ -111,7 +111,7 @@ stage_syntax =
         / "{" match             ":" match_document              "}"
         / "{" out               ":" string                      "}" // TODO: check is valid collection?
         / "{" project           ":" project_document            "}"
-//      / "{" "$redact"         ":" redact_document             "}"
+//      / "{" redact            ":" redact_document             "}"
         / "{" replaceRoot       ":" replaceRoot_document        "}"
         / "{" sample            ":" sample_document             "}"
         / "{" skip              ":" positive_integer            "}"
@@ -214,7 +214,26 @@ geoNear_document ="{" g:geoNear_item gArr:("," geoNear_item)* ","? "}"
         return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['near', 'distanceField']))
     }
 
-// TODO: $graphLookup
+graphLookup "$graphLookup" = '"$graphLookup"' { return '$graphLookup' } / "'$graphLookup'" { return '$graphLookup' } / "$graphLookup"
+startWith "startWith" = '"startWith"' { return 'startWith' } / "'startWith'" { return 'startWith' } / "startWith"
+connectFromField "connectFromField" = '"connectFromField"' { return 'connectFromField' } / "'connectFromField'" { return 'connectFromField' } / "connectFromField"
+connectToField "connectToField" = '"connectToField"' { return 'connectToField' } / "'connectToField'" { return 'connectToField' } / "connectToField"
+maxDepth "maxDepth" = '"maxDepth"' { return 'maxDepth' } / "'maxDepth'" { return 'maxDepth' } / "maxDepth"
+depthField "depthField" = '"depthField"' { return 'depthField' } / "'depthField'" { return 'depthField' } / "depthField"
+restrictSearchWithMatch "restrictSearchWithMatch" = '"restrictSearchWithMatch"' { return 'restrictSearchWithMatch' } / "'restrictSearchWithMatch'" { return 'restrictSearchWithMatch' } / "restrictSearchWithMatch"
+connectToField_item = s:string / a:array
+graphLookup_item = from ":" s:string
+                 / startWith ":" agg_expression
+                 / connectFromField ":" s:string
+                 / connectToField ":" connectToField_item
+                 / as ":" s:string
+                 / maxDepth ":" positive_integer
+                 / depthField ":" s:string
+                 / restrictSearchWithMatch ":" query_object // TODO: really confusing documentation about what supported here.
+graphLookup_document = "{" g:graphLookup_item gArr:("," graphLookup_item)* ","? "}"
+    {
+        return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['from', 'startWith', 'connectFromField', 'connectToField', 'as']))
+    }
 
 group "$group" = '"$group"' { return '$group' } / "'$group'" { return '$group' } / "$group"
 group_item = id ":" agg_expression

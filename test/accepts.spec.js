@@ -303,23 +303,85 @@ describe('#accepts', () => {
     });
   });
   describe('expressions with mixed optional and required fields', () => {
-    it('accepts a group with _id', () => {
-      accepts('{ $group: { _id: 1, field1: { $sum: "field" } } }');
+    describe('$group', () => {
+      it('accepts a group with _id', () => {
+        accepts('{ $group: { _id: 1, field1: { $sum: "field" } } }');
+      });
+      it('rejects a group without _id', () => {
+        rejects('{ $group: { field1: { $sum: "field" } } }');
+      });
+      it('rejects an empty group', () => {
+        rejects('{ $group: {} }');
+      });
+      it('rejects a group that is not an accumulator', () => {
+        rejects('{ $group: { _id: 1, field1: 1 } }');
+      });
+      it('accepts an agg expr for _id', () => {
+        accepts('{ $group: { _id: {$abs: 1}, field1: { $sum: "field" } } }');
+      });
+      it('accepts an agg expr for accumulator', () => {
+        accepts('{ $group: { _id: {$abs: 1}, field1: { $sum: {$abs: 1} } } }');
+      });
     });
-    it('rejects a group without _id', () => {
-      rejects('{ $group: { field1: { $sum: "field" } } }');
-    });
-    it('rejects an empty group', () => {
-      rejects('{ $group: {} }');
-    });
-    it('rejects a group that is not an accumulator', () => {
-      rejects('{ $group: { _id: 1, field1: 1 } }');
-    });
-    it('accepts an agg expr for _id', () => {
-      accepts('{ $group: { _id: {$abs: 1}, field1: { $sum: "field" } } }');
-    });
-    it('accepts an agg expr for accumulator', () => {
-      accepts('{ $group: { _id: {$abs: 1}, field1: { $sum: {$abs: 1} } } }');
+    describe('$graphLookup', () => {
+      it('accepts min doc', () => {
+        accepts('{$graphLookup: {' +
+          'from: "employees",' +
+          'startWith: "$reportsTo",' +
+          'connectFromField: "reportsTo",' +
+          'connectToField: "name",' +
+          'as: "reportingHierarchy"' +
+          '}}');
+      });
+      it('accepts full doc', () => {
+        accepts('{$graphLookup: {' +
+          'from: "employees",' +
+          'startWith: "$reportsTo",' +
+          'connectFromField: "reportsTo",' +
+          'connectToField: "name",' +
+          'as: "reportingHierarchy",' +
+          'maxDepth: 100,' +
+          'depthField: "fieldname",' +
+          'restrictSearchWithMatch: {x: 1}' +
+          '}}');
+      });
+      it('accepts an expression for startWith', () => {
+        accepts('{$graphLookup: {' +
+          'from: "employees",' +
+          'startWith: {$abs: 1},' +
+          'connectFromField: "reportsTo",' +
+          'connectToField: "name",' +
+          'as: "reportingHierarchy"' +
+          '}}');
+      });
+      it('accepts an array for startWith', () => {
+        accepts('{$graphLookup: {' +
+          'from: "employees",' +
+          'startWith: ["f1", "f2"],' +
+          'connectFromField: "reportsTo",' +
+          'connectToField: "name",' +
+          'as: "reportingHierarchy"' +
+          '}}');
+      });
+      it('accepts an array for connectToField', () => {
+        accepts('{$graphLookup: {' +
+          'from: "employees",' +
+          'startWith: ["f1", "f2"],' +
+          'connectFromField: "reportsTo",' +
+          'connectToField: ["name", "name2"],' +
+          'as: "reportingHierarchy"' +
+          '}}');
+      });
+      it('accepts query expr for restrictSearchWithMatch', () => {
+        accepts('{$graphLookup: { from: "employees", startWith: "$reportsTo",' +
+          'connectFromField: "reportsTo", connectToField: "name", ' +
+          'as: "reportingHierarchy", restrictSearchWithMatch: {x: {$gt: 1}}}}');
+      });
+      it('rejects agg expr for restrictSearchWithMatch', () => {
+        rejects('{$graphLookup: { from: "employees", startWith: "$reportsTo",' +
+          'connectFromField: "reportsTo", connectToField: "name",' +
+          'as: "reportingHierarchy", restrictSearchWithMatch: {x: {$literal: 1}}}}');
+      });
     });
   });
 
