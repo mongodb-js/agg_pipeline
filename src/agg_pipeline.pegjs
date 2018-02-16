@@ -56,6 +56,14 @@
         }
         return s
    }
+   // check that the field does not start with '$'
+   function checkIsNotFieldPath(s) {
+        if (s.charAt(0) !== '$') {
+            return s;
+        }
+        error("Field paths must begin with '$', field path was: " + s, location())
+   }
+
    function cleanBackSlashes(ch) {
         if (ch instanceof Array) {
                 return ch.join("")
@@ -177,7 +185,7 @@ unwind_document = s:string
                    return objOfArray([u].concat(cleanAndFlatten(uArr)))
                 }
 unwind_item =  p:path ":" s:string    { return [p, ':', checkIsFieldPath(s)] }
-               / includeArrayIndex ":" string
+               / ia:includeArrayIndex ":" s:string { return [ia, ':', checkIsNotFieldPath(s)] }
                / preserveNullAndEmptyArrays ":" boolean
 path                       'path' 
                            = '"path"' { return 'path' } 
@@ -251,12 +259,21 @@ stdDevPop  "$stdDevPop"  = "$stdDevPop"  / "'$stdDevPop'"  { return '$stdDevPop'
 stdDevSamp "$stdDevSamp" = "$stdDevSamp" / "'$stdDevSamp'" { return '$stdDevSamp'} / '"$stdDevSamp"'{ return '$stdDevSamp'}
 
 sort "$sort" = '"$sort"' { return '$sort' } / "'$sort'" { return '$sort' } / "$sort"
-// need grammar for all of sort, should support top level expressions ($and and $or)
 sort_document = "{" s:sort_item sArr:("," sort_item)* ","? "}"
-                    { 
-                       return objOfArray([s].concat(cleanAndFlatten(sArr))) 
+                    {
+                       return objOfArray([s].concat(cleanAndFlatten(sArr)))
                     }
-sort_item = f:field ":" i:integer
+sort_item     = f:field ":" "-1"
+              / f:field ":" "1"
+              / f:field ":" "{" m:meta ":" t:textScore "}"
+                {
+                     var obj = {}
+                     obj[m] = t
+                     return [f, ":", obj]
+                }
+
+meta "$meta" = "$meta" / "'$meta'" { return '$meta' } / '"$meta"' { return '$meta' }
+textScore "textScore" = "'textScore'" { return 'textScore' } / '"textScore"' { return 'textScore' }
 
 geoNear "$geoNear" = "$geoNear" / "'$geoNear'" { return '$geoNear' } / '"$geoNear"' { return '$geoNear' }
 

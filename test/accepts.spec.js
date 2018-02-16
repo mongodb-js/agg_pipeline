@@ -292,6 +292,101 @@ describe('#accepts', () => {
     });
   });
 
+  describe('expressions with multiple options', () => {
+    describe('$unwind', () => {
+      it('accepts a field path', () => {
+        accepts('{ $unwind: "$fieldpath" }');
+      });
+      it('rejects without $', () => {
+        rejects('{ $unwind: "fieldpath" }');
+      });
+      it('accepts full document', () => {
+        accepts('{ $unwind: ' +
+          '{ path: "$fieldpath",' +
+          '  includeArrayIndex: "newField",' +
+          '   preserveNullAndEmptyArrays: false }' +
+          '}');
+      });
+      it('rejects includeArrayIndex with $', () => {
+        rejects('{ $unwind: ' +
+          '{ path: "$fieldpath",' +
+          '  includeArrayIndex: "$newField",' +
+          '   preserveNullAndEmptyArrays: false }' +
+          '}');
+      });
+      it('accepts document with only path', () => {
+        rejects('{ $unwind: ' +
+          '{ path: "$fieldpath"' +
+          '}');
+      });
+    });
+  });
+
+  describe('expressions with fieldnames', () => {
+    describe('$addFields', () => {
+      it('accepts multiple fields', () => {
+        accepts('{$addFields: {' +
+          'field1: "value1",' +
+          'field2: 1,' +
+          'field3: {x: 1},' +
+          '}}');
+      });
+      it('accepts one field', () => {
+        accepts('{$addFields: {' +
+          'field1: "value1",' +
+          '}}');
+      });
+      it('rejects empty', () => {
+        rejects('{$addFields: {' +
+          '}}');
+      });
+      it('rejects non-doc', () => {
+        rejects('{$addField: "test"}');
+      });
+    });
+    describe('$sort', () => {
+      it('accepts multiple fields', () => {
+        accepts('{$sort: {' +
+          'field1: 1,' +
+          'field2: -1,' +
+          'field3: {$meta: "textScore"},' +
+          '}}');
+      });
+      it('accepts meta sort order', () => {
+        accepts('{$sort: {' +
+          'field: {$meta: \'textScore\'}' +
+          '}}');
+      });
+      it('accepts one field', () => {
+        accepts('{$sort: {' +
+          'field: 1,' +
+          '}}');
+      });
+      it('rejects empty', () => {
+        rejects('{$sort: {' +
+          '}}');
+      });
+      it('rejects non-doc', () => {
+        rejects('{$sort: "test"}');
+      });
+      it('rejects sort number not 1/-1 order', () => {
+        rejects('{$sort: {' +
+          'field: 100' +
+          '}}');
+      });
+      it('rejects $meta without textScore order', () => {
+        rejects('{$sort: {' +
+          'field: {$meta: "notTextScore"' +
+          '}}');
+      });
+      it('rejects non $meta document', () => {
+        rejects('{$sort: {' +
+          'field: {$notmeta: "TextScore"' +
+          '}}');
+      });
+    });
+  });
+
   describe('Invalid stage', () => {
     it('rejects an empty stage', () => {
       rejects('{}');
