@@ -105,8 +105,8 @@ stage_syntax =
         / "{" group             ":" group_document              "}"
         / "{" indexStats        ":" indexStats_document         "}"
         / "{" limit             ":" positive_integer            "}"
-//      / "{" listLocalSessions ":" listLocalSessions_document  "}"
-//      / "{" listSessions      ":" listSessions_document       "}"
+        / "{" listLocalSessions ":" listLocalSessions_document  "}"
+        / "{" listSessions      ":" listLocalSessions_document  "}"
         / "{" lookup            ":" lookup_document             "}"
         / "{" match             ":" match_document              "}"
         / "{" out               ":" string                      "}" // TODO: check is valid collection?
@@ -257,7 +257,31 @@ indexStats_document = "{""}"
 
 limit "$limit"  = '"$limit"'  { return '$limit' }  / "'$limit'"  { return '$limit'  }  / "$limit"
 
-// TODO: listLocalSessions, listSessions
+listSessions "$listSessions"  = '"$listSessions"'  { return '$listSessions' }  / "'$listSessions'"  { return '$listSessions'  }  / "$listSessions"
+listLocalSessions "$listLocalSessions"  = '"$listLocalSessions"'  { return '$listLocalSessions' }  / "'$listLocalSessions'"  { return '$listLocalSessions'  }  / "$listLocalSessions"
+users "users"  = '"users"'  { return 'users' }  / "'users'"  { return 'users'  }  / "users"
+user "user"  = '"user"'  { return 'user' }  / "'user'"  { return 'user'  }  / "user"
+db "db"  = '"db"'  { return 'db' }  / "'db'"  { return 'db'  }  / "db"
+
+users_item = u:user ":" s:string
+           / d:db ":" s:string
+users_document = "{" u1:users_item "," u2:users_item "}"
+    {
+        return objOfArray(checkRequiredOperators([u1, u2], ['user', 'db']))
+    }
+users_array = "[" s:users_document sArr:("," users_document)* ","? "]"
+                {
+                    return objOfArray([s].concat(cleanAndFlatten(sArr)))
+                }
+
+
+listLocalSessions_document = "{" "}"
+    {
+        return {}
+    }
+   / "{" allUsers ":" "true" "}"
+   / "{" f:users ":" u:users_array "}"
+
 
 lookup "$lookup" = '"$lookup"' { return '$lookup' } / "'$lookup'" { return '$lookup' } / "$lookup"
 from           "from"         = '"from"' { return 'from' }

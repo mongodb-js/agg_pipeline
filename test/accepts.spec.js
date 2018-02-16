@@ -413,6 +413,43 @@ describe('#accepts', () => {
           '}');
       });
     });
+    // TODO: supported in compass?
+    describe('listLocalSessions', () => {
+      it('accepts an empty doc', () => {
+        accepts('{$listLocalSessions: {}}');
+      });
+      it('accepts allUsers', () => {
+        accepts('{$listLocalSessions: {allUsers: true}}');
+      });
+      it('accepts one user/db', () => {
+        accepts('{$listLocalSessions: {users: [' +
+          '{user: "anna", db:"test"}' +
+          ']}}');
+      });
+      it('accepts multiple user/db', () => {
+        accepts('{$listLocalSessions: {users: [' +
+          '{user: "anna", db:"test"}, {user: "sara", db: "test2"}' +
+          ']}}');
+      });
+    });
+    describe('listSessions', () => {
+      it('accepts an empty doc', () => {
+        accepts('{$listSessions: {}}');
+      });
+      it('accepts allUsers', () => {
+        accepts('{$listSessions: {allUsers: true}}');
+      });
+      it('accepts one user/db', () => {
+        accepts('{$listSessions: {users: [' +
+          '{user: "anna", db:"test"}' +
+          ']}}');
+      });
+      it('accepts multiple user/db', () => {
+        accepts('{$listSessions: {users: [' +
+          '{user: "anna", db:"test"}, {user: "sara", db: "test2"}' +
+          ']}}');
+      });
+    });
   });
 
   describe('expressions with unset fields', () => {
