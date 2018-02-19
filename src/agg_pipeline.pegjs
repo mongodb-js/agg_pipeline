@@ -405,13 +405,12 @@ sort_document = "{" s:sort_item sArr:("," sort_item)* ","? "}"
     }
 
 sortByCount "$sortByCount"= '"$sortByCount"' { return '$sortByCount' } / "'$sortByCount'" { return '$sortByCount' }  / "$sortByCount"
-sbc_field = "$" field
-sbc_object_item = sbc_field ":" agg_expression
+sbc_object_item = (op_string / operation) ":" agg_expression
 sbc_object "AggObject" = "{" oi:sbc_object_item oiArr:("," sbc_object_item)* ","? "}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
-sortByCount_document = sbc_field / sbc_object
+sortByCount_document = op_string / sbc_object
 
 unwind "$unwind"= '"$unwind"' { return '$unwind' } / "'$unwind'" { return '$unwind' }  / "$unwind"
 path                       'path'
@@ -571,7 +570,7 @@ query_object "QueryObject" = "{""}"
                  }
 
 /* Any aggregation expression */
-agg_field = "$"? field
+agg_field = operation / field / string
 agg_object_item = f:agg_field ":" agg_expression
 agg_array  "AggArray" = "[""]"
                  { return [] }
@@ -588,9 +587,10 @@ agg_object "AggObject" = "{""}"
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
 operation "Operation"
-  = ["] str:(([^"\\] / "\\" $. )*) ["] { return str.map(cleanBackSlashes).join("") }
-  / ['] str:(([^'\\] / "\\" $. )*) ['] { return str.map(cleanBackSlashes).join("") }
-// TODO: start here, fix agg_field so that it has to start with $, fix sortByCount so it takes $
+  = "$" f:[_A-Za-z] s:([_A-Za-z0-9]*) { return "$" + f + s.join("") }
+
+op_string "OperationString" = [" / '] operation [" / ']
+
 
 field "Field Name" // TODO: better grammar for field names
   = f:[_A-Za-z] s:([_A-Za-z0-9]*) { return f + s.join("") }

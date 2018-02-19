@@ -82,6 +82,12 @@ describe('#accepts', () => {
       it('rejects a document literal', () => {
         rejects('{$sortByCount: {test: "$testing"}}');
       });
+      it('accepts a doc with $', () => {
+        accepts('{$sortByCount: {$test: "$testing"}}');
+      });
+      it('accepts a doc with $', () => {
+        accepts('{$sortByCount: {"$test": "$testing"}}');
+      });
     });
   });
   describe('expressions with required set fields', () => {
@@ -557,6 +563,11 @@ describe('#accepts', () => {
           'field3: {x: 1},' +
           '}}');
       });
+      it('rejects fields with $', () => {
+        rejects('{$addFields: {' +
+          '$field1: "value1",' +
+          '}}');
+      });
       it('accepts one field', () => {
         accepts('{$addFields: {' +
           'field1: "value1",' +
@@ -652,6 +663,9 @@ describe('#accepts', () => {
       });
       it('accepts query operators', () => {
         accepts('{ $match: { x: { $gt: 70 } } }');
+      });
+      it('rejects field paths with $', () => {
+        rejects('{ $match: { $x: 1 } }');
       });
     });
     describe('$project', () => {
