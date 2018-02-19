@@ -99,7 +99,7 @@ stage_syntax =
         / "{" collStats         ":" collStats_document          "}"
         / "{" count             ":" string                      "}"
         / "{" currentOp         ":" currentOp_document          "}"
-//      / "{" facet             ":" facet_document              "}"
+        / "{" facet             ":" facet_document              "}"
         / "{" geoNear           ":" geoNear_document            "}"
         / "{" graphLookup       ":" graphLookup_document        "}"
         / "{" group             ":" group_document              "}"
@@ -208,7 +208,12 @@ currentOp_document = "{" ci:currentOp_item? cArr:("," currentOp_item)* ","? "}"
         return [ci].concat(cleanAndFlatten(cArr))
     }
 
-// TODO: $facet
+facet "$facet" = "$facet" / "'$facet'" { return '$facet' } / '"$facet"' { return '$facet' }
+facet_item = f:field ":" pipeline
+facet_document = "{" a:facet_item aArr:("," facet_item)* ","? "}"
+    {
+        return objOfArray([a].concat(cleanAndFlatten(aArr)))
+    }
 
 geoNear "$geoNear" = "$geoNear" / "'$geoNear'" { return '$geoNear' } / '"$geoNear"' { return '$geoNear' }
 near "near" = "near" / "'near'" { return 'near' } / '"near"' { return 'near' }

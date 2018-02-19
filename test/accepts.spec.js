@@ -465,6 +465,19 @@ describe('#accepts', () => {
           'output: { output1: {$sum: 1}, output2: {$avg: 1} }' +
           '}}');
       });
+      it('accepts test doc', () => {
+        accepts('{' +
+          '$bucket: {' +
+          '    groupBy: "$price",' +
+          '    boundaries: [ 0, 150, 200, 300, 400 ],' +
+          '    default: "Other",' +
+          '    output: {' +
+          '        "count": { $sum: 1 },' +
+          '        "titles": { $push: "$title" }' +
+          '    }' +
+          '}' +
+          '}');
+      });
     });
     describe('$bucketAuto', () => {
       it('accepts min doc', () => {
@@ -721,6 +734,51 @@ describe('#accepts', () => {
       });
       it('rejects empty doc', () => {
         rejects('{$project{}}');
+      });
+    });
+    describe('$facet', () => {
+      it('rejects empty object', () => {
+        rejects('{$facet: {}}');
+      });
+      it('rejects a non-array for stage', () => {
+        rejects('{$facet: {' +
+          'output: {test: 1}' +
+          '}}');
+      });
+      it('rejects an empty pipeline', () => {
+        rejects('{$facet: {' +
+          'output: []' +
+          '}}');
+      });
+      it('accepts a pipeline', () => {
+        accepts('{$facet: {' +
+          '    "categorizedByTags": [' +
+          '        { $unwind: "$tags" },' +
+          '        { $sortByCount: "$tags" }' +
+          '    ],' +
+          '    "categorizedByPrice": [' +
+          '        { $match: { price: { $exists: 1 } } },' +
+          '        {' +
+          '          $bucket: {' +
+          '            groupBy: "$price",' +
+          '            boundaries: [  0, 150, 200, 300, 400 ],' +
+          '            default: "Other",' +
+          '            output: {' +
+          '              "count": { $sum: 1 },' +
+          '              "titles": { $push: "$title" }' +
+          '            }' +
+          '          }' +
+          '        }' +
+          '    ],' +
+          '    "categorizedByYears(Auto)": [' +
+          '        {' +
+          '          $bucketAuto: {' +
+          '            groupBy: "$year",' +
+          '            buckets: 4' +
+          '          }' +
+          '        }' +
+          '    ]' +
+          '}}');
       });
     });
   });
