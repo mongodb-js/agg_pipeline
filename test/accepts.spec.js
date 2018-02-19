@@ -89,6 +89,24 @@ describe('#accepts', () => {
         accepts('{$sortByCount: {"$test": "$testing"}}');
       });
     });
+    describe('redact', () => {
+      // TODO: Check if evaluates to $$DESCEND/PRUNE/$$KEEP?
+      it('accepts $cond', () => {
+        accepts('{$redact: {$cond: {\n' +
+          '          if: { $eq: [ "$level", 5 ] },\n' +
+          '          then: "$$PRUNE",\n' +
+          '          else: "$$DESCEND"\n' +
+          '        }}}');
+      });
+      it('accepts sys var string', () => {
+        accepts('{$redact: "$$PRUNE"}');
+        accepts('{$redact: "$$DESCEND"}');
+        accepts('{$redact: "$$KEEP"}');
+      });
+      it('rejects other string', () => {
+        rejects('{$redact: "other string"}');
+      });
+    });
   });
   describe('expressions with required set fields', () => {
     describe('$sample', () => {
@@ -691,14 +709,14 @@ describe('#accepts', () => {
           'field: {"$literal": "testing"},' +
           '}}');
       });
-      it('accepts an arbitrary $ field', () => {
+      it('accepts an arbitrary $ field', () => { // TODO: limit to defined operators
         accepts('{$project: {' +
           'field: {"$testing": "testing"},' +
           '}}');
       });
       it('accepts nested field', () => {
         accepts('{$project: {' +
-          '"field.nested": {"$testing": "testing"},' + // TODO: need to be supported without quotation?
+          '"field.nested": {"$literal": "testing"},' + // TODO: need to be supported without quotation?
           '}}');
       });
       it('rejects empty doc', () => {

@@ -111,7 +111,7 @@ stage_syntax =
         / "{" match             ":" match_document              "}"
         / "{" out               ":" string                      "}" // TODO: check is valid collection?
         / "{" project           ":" project_document            "}"
-//      / "{" redact            ":" redact_document             "}"
+        / "{" redact            ":" redact_document             "}"
         / "{" replaceRoot       ":" replaceRoot_document        "}"
         / "{" sample            ":" sample_document             "}"
         / "{" skip              ":" positive_integer            "}"
@@ -375,7 +375,10 @@ project_document  = "{" s:project_item sArr:("," project_item)* ","? "}"
         return objOfArray(checkExclusivity([s].concat(cleanAndFlatten(sArr))))
     }
 
-// TODO: $redact
+redact "$redact" = '"$redact"' { return '$redact' } / "'$redact'" { return '$redact' } / "$redact"
+sys_var = "$$KEEP" / "$$PRUNE" / "$$DESCEND"
+redact_item = ["] sys_var ["] / ['] sys_var [']
+redact_document = agg_object / redact_item
 
 replaceRoot "$replaceRoot" = '"$replaceRoot"' { return '$replaceRoot' } / "'$replaceRoot'" { return '$replaceRoot' } / "$replaceRoot"
 newRoot "newRoot" = "newRoot" / "'newRoot'" { return 'newRoot' } / '"newRoot"' { return 'newRoot' }
