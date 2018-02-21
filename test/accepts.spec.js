@@ -1190,25 +1190,25 @@ describe('#accepts', () => {
   // describe('Extended JSON Syntax', () => {
   //
   // });
-  // describe('Invalid stage', () => {
-  //   it('rejects an empty stage', () => {
-  //     rejects('{}');
-  //   });
-  //   it('rejects a non-operator', () => {
-  //     rejects('{$notanoperator: 1}');
-  //   });
-  //   it('rejects a missing $', () => {
-  //     rejects('{sort: 1}');
-  //   });
-  //   it('rejects constants for complex operators', () => {
-  //     rejects('{$addFields: 1}');
-  //   });
-  //   it('rejects a pipeline', () => {
-  //     rejects('[{$match: {x: 1}}, {$sort: 1}]');
-  //   });
-  //   it('rejects text', () => {
-  //     rejects('a pipeline');
-  //   });
-  // });
+  describe('Invalid stage', () => {
+    it('rejects an empty stage', () => {
+      rejects('{}');
+    });
+    it('rejects a non-operator', () => {
+      rejects('{$notanoperator: 1}');
+    });
+    it('rejects a missing $', () => {
+      rejects('{sort: 1}');
+    });
+    it('rejects constants for complex operators', () => {
+      rejects('{$addFields: 1}');
+    });
+    it('rejects a pipeline', () => {
+      rejects('[{$match: {x: 1}}, {$sort: 1}]');
+    });
+    it('rejects text', () => {
+      rejects('a pipeline');
+    });
+  });
 });
 
