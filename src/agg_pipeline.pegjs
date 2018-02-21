@@ -56,12 +56,12 @@
         }
         return s
    }
-   // check that the field does not start with '$'
+   // check that the field does not start with '$' or .
    function checkIsNotFieldPath(s) {
-        if (s.charAt(0) !== '$') {
+        if (s.charAt(0) !== '$' && s.charAt(0) !== '.') {
             return s;
         }
-        error("Field paths must begin with '$', field path was: " + s, location())
+        error("Field paths must begin with '$' or '.', field path was: " + s, location())
    }
 
    function cleanBackSlashes(ch) {
@@ -69,6 +69,15 @@
                 return ch.join("")
         }
         return ch
+   }
+   function checkNotOperator(s) {
+        if (s.charAt(0) === '$') {
+            error("Field must not begin with '$' or '.', field path was: " + s, location())
+        }
+        if(s.charAt(0) === '.') {
+            error("Field must not begin with '$' or '.', field path was: " + s, location())
+        }
+        return s;
    }
 }
 
@@ -133,7 +142,7 @@ boundaries "boundaries" = "boundaries" / "'boundaries'" { return 'boundaries' } 
 default "default" = "default" / "'default'" { return 'default' } / '"default"' { return 'default' }
 output "output" = "output" / "'output'" { return 'output' } / '"output"' { return 'output' }
 
-output_item = f:agg_field ":" "{" a:accumulator ":" e:agg_expression "}"
+output_item = f:field ":" "{" a:accumulator ":" e:agg_expression "}"
      {
         var obj = {}
         obj[a] = e
@@ -243,7 +252,7 @@ geoNear_item = gn:near ":" gni:near_item
              / gl:geoLimit ":" i:positive_integer
              / gn:num ":" i:positive_integer
              / gmd:maxDistance ":" n:number
-             / gq:query ":" m:match_document
+             / gq:query ":" m:query_expression
              / gdm:distanceMultiplier ":" n:number
              / gu:uniqueDocs ":" b:boolean
              / gi:includeLocs ":" s:string
@@ -410,12 +419,12 @@ sort_document = "{" s:sort_item sArr:("," sort_item)* ","? "}"
     }
 
 sortByCount "$sortByCount"= '"$sortByCount"' { return '$sortByCount' } / "'$sortByCount'" { return '$sortByCount' }  / "$sortByCount"
-sbc_object_item = (op_string / operation) ":" agg_expression
+sbc_object_item = agg_operator ":" agg_expression
 sbc_object "AggObject" = "{" oi:sbc_object_item oiArr:("," sbc_object_item)* ","? "}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
-sortByCount_document = op_string / sbc_object
+sortByCount_document = string / sbc_object
 
 unwind "$unwind"= '"$unwind"' { return '$unwind' } / "'$unwind'" { return '$unwind' }  / "$unwind"
 path                       'path'
@@ -486,7 +495,7 @@ array_op = all / elemMatch / sizeOp
 bit_op = bitsAllClear / bitsAllSet / bitsAnyClear / bitsAnySet
 project_op = elemMatch / metaOp / slice
 
-lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / '"$lte"'      { return '$lte'      }
+lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / "\"$lte\""      { return '$lte'      }
 gte        "$gte"       = "$gte"       / "'$gte'"       { return '$gte'     } / '"$gte"'      { return '$gte'      }
 eq         "$eq"        = "$eq"        / "'$eq'"        { return '$eq'      } / '"$eq"'       { return '$eq'       }
 gt         "$gt"        = "$gt"        / "'$gt'"        { return '$gt'      } / '"$gt"'       { return '$gt'       }
@@ -506,7 +515,6 @@ regex      "$regex"     = "$regex"     / "'$regex'"     { return '$regex'   } / 
 text       "$text"      = "$text"      / "'$text'"      { return '$text'    } / '"$text"'     { return '$text'     }
 where      "$where"     = "$where"     / "'$where'"     { return '$where'   } / '"$where"'    { return '$where'    }
 all        "$all"       = "$all"       / "'$all'"       { return '$all'     } / '"$all"'      { return '$all'      }
-sizeOp     "$size"      = "$size"      / "'$size'"      { return '$size'    } / '"$size"'     { return '$size'     }
 metaOp     "$meta"      = "$meta"      / "'$meta'"      { return '$meta'    } / '"$meta"'     { return '$meta'     }
 slice      "$slice"     = "$slice"     / "'$slice'"     { return '$slice'   } / '"$slice"'    { return '$slice'    }
 comment    "$comment"   = "$comment"   / "'$comment'"   { return '$comment' } / '"$comment"'  { return '$comment'  }
@@ -522,10 +530,97 @@ bitsAnySet      "$bitsAnySet"    = "$bitsAnySet"    / "'$bitsAnySet'"    { retur
 bitsAllClear    "$bitsAllClear"  = "$bitsAllClear"  / "'$bitsAllClear'"  { return '$bitsAllClear' }  / '"$bitsAllClear"'  { return '$bitsAllClear'  }
 bitsAnyClear    "$bitsAnyClear"  = "$bitsAnyClear"  / "'$bitsAnyClear'"  { return '$bitsAnyClear' }  / '"$bitsAnyClear"'  { return '$bitsAnyClear'  }
 
-/* GeoMess */
-near       "near"           = !"$near" !"$nearSphere" n:"near" { return n }   / !"'$near'" "'near'"     { return 'near'     }     / !'"$near"' '"near"'           { return 'near'         }
-nearOp     "$near"          = n:"$near"                        { return n }   / !"nearSphere" "'$near'" { return '$near'    }     / !'"$nearSphere"' '"$near"'    { return '$near'        }
-nearSphere "$nearSphere"    = n:"$nearSphere"                  {  return n }  / "'$nearSphere'"         { return '$nearSphere' }  / '"$nearSphere"'               { return '$nearSphere'  }
+/* Mess */
+near       "near"           = !"$near" !"$nearSphere" n:"near" { return n }   / !"'$near'" !"'$nearSphere'" "'near'" { return 'near'     }     / !'"$near"' !'"$nearSphere"' '"near"'   { return 'near'         }
+nearOp     "$near"          = !"$nearSphere" n:"$near"         { return n }   / !"nearSphere" "'$near'"              { return '$near'    }     / !'"$nearSphere"' '"$near"'             { return '$near'        }
+nearSphere "$nearSphere"    = n:"$nearSphere"                  { return n }   / "'$nearSphere'"                      { return '$nearSphere' }  / '"$nearSphere"'                        { return '$nearSphere'  }
+
+sizeOp     "$size"      = "$size"      / "'$size'"      { return '$size'    } / '"$size"'     { return '$size'     }
+
+agg_operator = accumulator
+             / and / eq / gte / gt / lte / lt / in / meta / mod / ne / not / or
+             / sizeOp / slice / typeOp / abs / add / allElementsTrue / anyElementTrue
+             / arrayElemAt / arrayToObject / ceil / cmp / concatArrays / concat
+             / dateFromParts / dateFromString / dateToString / dateToParts
+             / dayOfMonth / dayOfWeek / dayOfYear / divide / exp / filter
+             / floor / hour / ifNull / indexOfArray / indexOfBytes / indexOfCP
+             / isArray / isoDayOfWeek / isoWeek / isoWeekYear / let / literalOp
+             / ln / log10 / log / map / mergeObjects / millisecond / minute
+             / month / multiply / objectToArray / pow / range / reduce
+             / reverseArray / second / setDifference / setEquals / setIntersection
+             / setIsSubset / setUnion / split / sqrt / strcasecmp / strLenBytes
+             / strLenCP / substrBytes / substrCP / substr / subtract / switch
+             / toLower / toUpper / trunc / week / year / zip
+
+abs                     "$abs"              = "$abs"             / "'$abs'" { return '$abs' }                           / '"$abs"' { return '$abs' }
+add                     "$add"              = "$add"             / "'$add'" { return '$add' }                           / '"$add"' { return '$add' }
+allElementsTrue         "$allElementsTrue"  = "$allElementsTrue" / "'$allElementsTrue'" { return '$allElementsTrue' }   / '"$allElementsTrue"' { return '$allElementsTrue' }
+anyElementTrue          "$anyElementTrue"   = "$anyElementTrue"  / "'$anyElementTrue'" { return '$anyElementTrue' }     / '"$anyElementTrue"' { return '$anyElementTrue' }
+arrayElemAt             "$arrayElemAt"      = "$arrayElemAt"     / "'$arrayElemAt'" { return '$arrayElemAt' }           / '"$arrayElemAt"' { return '$arrayElemAt' }
+arrayToObject           "$arrayToObject"    = "$arrayToObject"   / "'$arrayToObject'" { return '$arrayToObject' }       / '"$arrayToObject"' { return '$arrayToObject' }
+ceil                    "$ceil"             = "$ceil"            / "'$ceil'" { return '$ceil' }                         / '"$ceil"' { return '$ceil' }
+cmp                     "$cmp"              = "$cmp"             / "'$cmp'" { return '$cmp' }                           / '"$cmp"' { return '$cmp' }
+concatArrays            "$concatArrays"     = "$concatArrays"    / "'$concatArrays'" { return '$concatArrays' }         / '"$concatArrays"' { return '$concatArrays' }
+concat                  "$concat"           = "$concat"          / "'$concat'" { return '$concat' }                     / '"$concat"' { return '$concat' }
+cond                    "$cond"             = "$cond"            / "'$cond'" { return '$cond' }                         / '"$cond"' { return '$cond' }
+dateFromParts           "$dateFromParts"    = "$dateFromParts"   / "'$dateFromParts'" { return '$dateFromParts' }       / '"$dateFromParts"' { return '$dateFromParts' }
+dateFromString          "$dateFromString"   = "$dateFromString"  / "'$dateFromString'" { return '$dateFromString' }     / '"$dateFromString"' { return '$dateFromString' }
+dateToString            "$dateToString"     = "$dateToString"    / "'$dateToString'" { return '$dateToString' }         / '"$dateToString"' { return '$dateToString' }
+dateToParts             "$dateToParts"      = "$dateToParts"     / "'$dateToParts'" { return '$dateToParts' }           / '"$dateToParts"' { return '$dateToParts' }
+dayOfMonth              "$dayOfMonth"       = "$dayOfMonth"      / "'$dayOfMonth'" { return '$dayOfMonth' }             / '"$dayOfMonth"' { return '$dayOfMonth' }
+dayOfWeek               "$dayOfWeek"        = "$dayOfWeek"       / "'$dayOfWeek'" { return '$dayOfWeek' }               / '"$dayOfWeek"' { return '$dayOfWeek' }
+dayOfYear               "$dayOfYear"        = "$dayOfYear"       / "'$dayOfYear'" { return '$dayOfYear' }               / '"$dayOfYear"' { return '$dayOfYear' }
+divide                  "$divide"           = "$divide"          / "'$divide'" { return '$divide' }                     / '"$divide"' { return '$divide' }
+exp                     "$exp"              = "$exp"             / "'$exp'" { return '$exp' }                           / '"$exp"' { return '$exp' }
+filter                  "$filter"           = "$filter"          / "'$filter'" { return '$filter' }                     / '"$filter"' { return '$filter' }
+floor                   "$floor"            = "$floor"           / "'$floor'" { return '$floor' }                       / '"$floor"' { return '$floor' }
+hour                    "$hour"             = "$hour"            / "'$hour'" { return '$hour' }                         / '"$hour"' { return '$hour' }
+ifNull                  "$ifNull"           = "$ifNull"          / "'$ifNull'" { return '$ifNull' }                     / '"$ifNull"' { return '$ifNull' }
+indexOfArray            "$indexOfArray"     = "$indexOfArray"    / "'$indexOfArray'" { return '$indexOfArray' }         / '"$indexOfArray"' { return '$indexOfArray' }
+indexOfBytes            "$indexOfBytes"     = "$indexOfBytes"    / "'$indexOfBytes'" { return '$indexOfBytes' }         / '"$indexOfBytes"' { return '$indexOfBytes' }
+indexOfCP               "$indexOfCP"        = "$indexOfCP"       / "'$indexOfCP'" { return '$indexOfCP' }               / '"$indexOfCP"' { return '$indexOfCP' }
+isArray                 "$isArray"          = "$isArray"         / "'$isArray'" { return '$isArray' }                   / '"$isArray"' { return '$isArray' }
+isoDayOfWeek            "$isoDayOfWeek"     = "$isoDayOfWeek"    / "'$isoDayOfWeek'" { return '$isoDayOfWeek' }         / '"$isoDayOfWeek"' { return '$isoDayOfWeek' }
+isoWeek                 "$isoWeek"          = "$isoWeek"         / "'$isoWeek'" { return '$isoWeek' }                   / '"$isoWeek"' { return '$isoWeek' }
+isoWeekYear             "$isoWeekYear"      = "$isoWeekYear"     / "'$isoWeekYear'" { return '$isoWeekYear' }           / '"$isoWeekYear"' { return '$isoWeekYear' }
+let                     "$let"              = "$let"             / "'$let'" { return '$let' }                           / '"$let"' { return '$let' }
+literalOp               "$literal"          = "$literal"         / "'$literal'" { return '$literal' }                   / '"$literal"' { return '$literal' }
+ln                      "$ln"               = "$ln"              / "'$ln'" { return '$ln' }                             / '"$ln"' { return '$ln' }
+log10                   "$log10"            = "$log10"           / "'$log10'" { return '$log10' }                       / '"$log10"' { return '$log10' }
+log                     "$log"              = "$log"             / "'$log'" { return '$log' }                           / '"$log"' { return '$log' }
+map                     "$map"              = "$map"             / "'$map'" { return '$map' }                           / '"$map"' { return '$map' }
+mergeObjects            "$mergeObjects"     = "$mergeObjects"    / "'$mergeObjects'" { return '$mergeObjects' }         / '"$mergeObjects"' { return '$mergeObjects' }
+millisecond             "$millisecond"      = "$millisecond"     / "'$millisecond'" { return '$millisecond' }           / '"$millisecond"' { return '$millisecond' }
+minute                  "$minute"           = "$minute"          / "'$minute'" { return '$minute' }                     / '"$minute"' { return '$minute' }
+month                   "$month"            = "$month"           / "'$month'" { return '$month' }                       / '"$month"' { return '$month' }
+multiply                "$multiply"         = "$multiply"        / "'$multiply'" { return '$multiply' }                 / '"$multiply"' { return '$multiply' }
+objectToArray           "$objectToArray"    = "$objectToArray"   / "'$objectToArray'" { return '$objectToArray' }       / '"$objectToArray"' { return '$objectToArray' }
+pow                     "$pow"              = "$pow"             / "'$pow'" { return '$pow' }                           / '"$pow"' { return '$pow' }
+range                   "$range"            = "$range"           / "'$range'" { return '$range' }                       / '"$range"' { return '$range' }
+reduce                  "$reduce"           = "$reduce"          / "'$reduce'" { return '$reduce' }                     / '"$reduce"' { return '$reduce' }
+reverseArray            "$reverseArray"     = "$reverseArray"    / "'$reverseArray'" { return '$reverseArray' }         / '"$reverseArray"' { return '$reverseArray' }
+second                  "$second"           = "$second"          / "'$second'" { return '$second' }                     / '"$second"' { return '$second' }
+setDifference           "$setDifference"    = "$setDifference"   / "'$setDifference'" { return '$setDifference' }       / '"$setDifference"' { return '$setDifference' }
+setEquals               "$setEquals"        = "$setEquals"       / "'$setEquals'" { return '$setEquals' }               / '"$setEquals"' { return '$setEquals' }
+setIntersection         "$setIntersection"  = "$setIntersection" / "'$setIntersection'" { return '$setIntersection' }   / '"$setIntersection"' { return '$setIntersection' }
+setIsSubset             "$setIsSubset"      = "$setIsSubset"     / "'$setIsSubset'" { return '$setIsSubset' }           / '"$setIsSubset"' { return '$setIsSubset' }
+setUnion                "$setUnion"         = "$setUnion"        / "'$setUnion'" { return '$setUnion' }                 / '"$setUnion"' { return '$setUnion' }
+split                   "$split"            = "$split"           / "'$split'" { return '$split' }                       / '"$split"' { return '$split' }
+sqrt                    "$sqrt"             = "$sqrt"            / "'$sqrt'" { return '$sqrt' }                         / '"$sqrt"' { return '$sqrt' }
+strcasecmp              "$strcasecmp"       = "$strcasecmp"      / "'$strcasecmp'" { return '$strcasecmp' }             / '"$strcasecmp"' { return '$strcasecmp' }
+strLenBytes             "$strLenBytes"      = "$strLenBytes"     / "'$strLenBytes'" { return '$strLenBytes' }           / '"$strLenBytes"' { return '$strLenBytes' }
+strLenCP                "$strLenCP"         = "$strLenCP"        / "'$strLenCP'" { return '$strLenCP' }                 / '"$strLenCP"' { return '$strLenCP' }
+substrBytes             "$substrBytes"      = "$substrBytes"     / "'$substrBytes'" { return '$substrBytes' }           / '"$substrBytes"' { return '$substrBytes' }
+substrCP                "$substrCP"         = "$substrCP"        / "'$substrCP'" { return '$substrCP' }                 / '"$substrCP"' { return '$substrCP' }
+substr                  "$substr"           = "$substr"          / "'$substr'" { return '$substr' }                     / '"$substr"' { return '$substr' }
+subtract                "$subtract"         = "$subtract"        / "'$subtract'" { return '$subtract' }                 / '"$subtract"' { return '$subtract' }
+switch                  "$switch"           = "$switch"          / "'$switch'" { return '$switch' }                     / '"$switch"' { return '$switch' }
+toLower                 "$toLower"          = "$toLower"         / "'$toLower'" { return '$toLower' }                   / '"$toLower"' { return '$toLower' }
+toUpper                 "$toUpper"          = "$toUpper"         / "'$toUpper'" { return '$toUpper' }                   / '"$toUpper"' { return '$toUpper' }
+trunc                   "$trunc"            = "$trunc"           / "'$trunc'" { return '$trunc' }                       / '"$trunc"' { return '$trunc' }
+week                    "$week"             = "$week"            / "'$week'" { return '$week' }                         / '"$week"' { return '$week' }
+year                    "$year"             = "$year"            / "'$year'" { return '$year' }                         / '"$year"' { return '$year' }
+zip                     "$zip"              = "$zip"             / "'$zip'" { return '$zip' }                           / '"$zip"' { return '$zip' }
 
 
 // A few contexts allow only id.  Note that a context requiring id must come before field
@@ -538,10 +633,10 @@ id "_id" = '_id' / "'_id'" { return '_id' } / '"_id"' { return '_id' }
 expression = number / string / boolean / null / array / object
 
 // Expression that can include query operators
-query_expression = expression / query_object / query_array
+query_expression = query_object / query_array / expression
 
 // Expression that can include aggregation operators
-agg_expression = query_expression / agg_object / agg_array
+agg_expression = agg_object / agg_array / expression
 
 // This is odd, but there's no other good way to allow for the optional trailing comma
 /* Document literals */
@@ -562,49 +657,68 @@ object_item = f:field ":" e:expression
 query_object_item = f:query_operator ":" e:query_expression
 query_array  "QueryArray" = "[""]"
                  { return [] }
-               / "[" e:expression eArr:("," expression)* ","? "]"
                / "[" e:query_expression eArr:("," query_expression)* ","? "]"
+               / "[" e:expression eArr:("," expression)* ","? "]"
                  {
                     return [e].concat(cleanAndFlatten(eArr))
                  }
 query_object "QueryObject" = "{""}"
                  { return {} }
-                / "{" oi:object_item oiArr:("," object_item)* ","? "}"
                 / "{" oi:query_object_item oiArr:("," query_object_item)* ","? "}"
+                / "{" oi:object_item oiArr:("," object_item)* ","? "}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
 
 /* Any aggregation expression */
-agg_field = operation / field / string
-agg_object_item = f:agg_field ":" agg_expression
+agg_field = agg_operator / field
+agg_object_item = agg_field ":" agg_expression
 agg_array  "AggArray" = "[""]"
                  { return [] }
-               / "[" e:expression eArr:("," expression)* ","? "]"
                / "[" e:agg_expression eArr:("," agg_expression)* ","? "]"
+               / "[" e:expression eArr:("," expression)* ","? "]"
                  {
                     return [e].concat(cleanAndFlatten(eArr))
                  }
 agg_object "AggObject" = "{""}"
                  { return {} }
-                / "{" oi:object_item oiArr:("," object_item)* ","? "}"
                 / "{" oi:agg_object_item oiArr:("," agg_object_item)* ","? "}"
+                / "{" oi:object_item oiArr:("," object_item)* ","? "}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
-operation "Operation"
-  = "$" f:[_A-Za-z] s:([_A-Za-z0-9]*) { return "$" + f + s.join("") }
 
-op_string "OperationString" = [" / '] operation [" / ']
-
-
+// Any non standard character needs to be in quotes for a fieldname
 field "Field Name"
-  = f:[_A-Za-z] s:([_A-Za-z0-9]*) { return f + s.join("") }
-  / string
+  = _ f:[_A-Za-z0-9] s:([_A-Za-z0-9 \\ .]*) { return f + s.join("") }
+  / string_with_esc
+
+string_with_esc
+  = '"' chars:DoubleStringCharacter* '"' { return checkNotOperator(chars.join('')); }
+  / "'" chars:SingleStringCharacter* "'" { return checkNotOperator(chars.join('')); }
+
+DoubleStringCharacter
+  = !('"' / "\\") char:. { return char; }
+  / "\\" sequence:EscapeSequence { return sequence; }
+
+SingleStringCharacter
+  = !("'" / "\\") char:. { return char; }
+  / "\\" sequence:EscapeSequence { return sequence; }
+
+EscapeSequence
+  = "'"
+  / '"'
+  / "\\"
+  / "b"  { return "\b";   }
+  / "f"  { return "\f";   }
+  / "n"  { return "\n";   }
+  / "r"  { return "\r";   }
+  / "t"  { return "\t";   }
+  / "v"  { return "\x0B"; }
 
 string "String"
-  = ["] str:(([^"\\] / "\\" . )*) ["] { return str.map(cleanBackSlashes).join("") } 
-  / ['] str:(([^'\\] / "\\" . )*) ['] { return str.map(cleanBackSlashes).join("") }
+  = '"' chars:DoubleStringCharacter* '"' { return chars.join(''); }
+  / "'" chars:SingleStringCharacter* "'" { return chars.join(''); }
 
 
 // Float must come before integer or integer will be matched when floats occur
@@ -617,10 +731,13 @@ positive_integer "Positive Integer"
   = digits:[0-9]+ { return parseInt(digits.join(""), 10)  }
                                                          
 boolean 
-  = "true" {return true} / "false" {return false} 
+  = "true" { return true} / "false" { return false}
 
-null = "null" {return null}
+null = "null" { return null}
 
 literal = string / number / boolean
+
+_ "whitespace"
+  = [ \t\n\r]*
                                                          
                                                          
