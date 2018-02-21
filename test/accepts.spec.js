@@ -1036,7 +1036,7 @@ describe('#accepts', () => {
     describe('agg_expr', () => {
       it('accepts all operators without quotes part 1', () => {
         accepts('{$addFields: {' +
-          '   a: {$abs: 1},' +
+          '   a2: {$abs: 1}, a3: {$cond: 1}, a4: {$gt: 1}, a5: {$gte: 1}, a6: {$lt: 1}, a7: {$lte: 1}, a8: {$in: 1},' +
           '   a: {$addToSet: 1}, q: {$and: 1}, w: {$avg: 1}, e: {$eq: 1}, r: {$first: 1},' +
           '   t: {$gte: 1}, y: {$gt: 1}, u: {$lte: 1}, i: {$lt: 1}, o: {$in: 1},' +
           '   p: {$last: 1}, a: {$meta: 1}, s: {$max: 1}, d: {$min: 1}, f: {$mod: 1},' +
@@ -1051,6 +1051,7 @@ describe('#accepts', () => {
       });
       it('accepts all operators part 1 with double quotes', () => {
         accepts('{$addFields: {' +
+          '   a2: {"$abs": 1}, a3: {"$cond": 1}, a4: {"$gt": 1}, a5: {"$gte": 1}, a6: {"$lt": 1}, a7: {"$lte": 1}, a8: {"$in": 1},' +
           '   a: {"$addToSet": 1}, q: {"$and": 1}, w: {"$avg": 1}, e: {"$eq": 1}, r: {"$first": 1},' +
           '   t: {"$gte": 1}, y: {"$gt": 1}, u: {"$lte": 1}, i: {"$lt": 1}, o: {"$in": 1},' +
           '   p: {"$last": 1}, a: {"$meta": 1}, s: {"$max": 1}, d: {"$min": 1}, f: {"$mod": 1},' +
@@ -1065,6 +1066,7 @@ describe('#accepts', () => {
       });
       it('accepts all operators part 1 with single quotes', () => {
         accepts('{$addFields: {' +
+          '   a2: {\'$abs\': 1}, a3: {\'$cond\': 1}, a4: {\'$gt\': 1}, a5: {\'$gte\': 1}, a6: {\'$lt\': 1}, a7: {\'$lte\': 1}, a8: {\'$in\': 1},' +
           '   a: {\'$addToSet\': 1}, q: {\'$and\': 1}, w: {\'$avg\': 1}, e: {\'$eq\': 1}, r: {\'$first\': 1},' +
           '   t: {\'$gte\': 1}, y: {\'$gt\': 1}, u: {\'$lte\': 1}, i: {\'$lt\': 1}, o: {\'$in\': 1},' +
           '   p: {\'$last\': 1}, a: {\'$meta\': 1}, s: {\'$max\': 1}, d: {\'$min\': 1}, f: {\'$mod\': 1},' +

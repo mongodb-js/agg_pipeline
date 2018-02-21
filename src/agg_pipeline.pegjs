@@ -552,7 +552,7 @@ agg_operator = accumulator
              / toLower / toUpper / trunc / week / year / zip / accumulator
 
 abs                     "$abs"              = "$abs"             / "'$abs'" { return '$abs' }                           / '"$abs"' { return '$abs' }
-add                     "$add"              = (!"$addToField" !"addToSet" "$add") TODO START HERE             / "'$add'" { return '$add' }                           / '"$add"' { return '$add' }
+add                     "$add"              = (!"$addToField" !"addToSet" "$add") / (!"'$addTofield'" !"'$addToSet'" "'$add'") { return '$add' } / (!'"$addToField"' !'"$addToSet"' '"$add"') { return '$add' }
 allElementsTrue         "$allElementsTrue"  = "$allElementsTrue" / "'$allElementsTrue'" { return '$allElementsTrue' }   / '"$allElementsTrue"' { return '$allElementsTrue' }
 anyElementTrue          "$anyElementTrue"   = "$anyElementTrue"  / "'$anyElementTrue'" { return '$anyElementTrue' }     / '"$anyElementTrue"' { return '$anyElementTrue' }
 arrayElemAt             "$arrayElemAt"      = "$arrayElemAt"     / "'$arrayElemAt'" { return '$arrayElemAt' }           / '"$arrayElemAt"' { return '$arrayElemAt' }
@@ -560,7 +560,7 @@ arrayToObject           "$arrayToObject"    = "$arrayToObject"   / "'$arrayToObj
 ceil                    "$ceil"             = "$ceil"            / "'$ceil'" { return '$ceil' }                         / '"$ceil"' { return '$ceil' }
 cmp                     "$cmp"              = "$cmp"             / "'$cmp'" { return '$cmp' }                           / '"$cmp"' { return '$cmp' }
 concatArrays            "$concatArrays"     = "$concatArrays"    / "'$concatArrays'" { return '$concatArrays' }         / '"$concatArrays"' { return '$concatArrays' }
-concat                  "$concat"           = "$concat"          / "'$concat'" { return '$concat' }                     / '"$concat"' { return '$concat' }
+concat                  "$concat"           = (!"$concatArrays" "$concat") / (!"'$concatArrays'" "'$concat'") { return '$concat' } / (!'"$concatArrays"' '"$concat"') { return '$concat' }
 cond                    "$cond"             = "$cond"            / "'$cond'" { return '$cond' }                         / '"$cond"' { return '$cond' }
 dateFromParts           "$dateFromParts"    = "$dateFromParts"   / "'$dateFromParts'" { return '$dateFromParts' }       / '"$dateFromParts"' { return '$dateFromParts' }
 dateFromString          "$dateFromString"   = "$dateFromString"  / "'$dateFromString'" { return '$dateFromString' }     / '"$dateFromString"' { return '$dateFromString' }
