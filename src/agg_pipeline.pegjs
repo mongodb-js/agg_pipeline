@@ -481,7 +481,7 @@ comp_op  = eq / gte / gt / in / lte / lt / ne / nin
 log_op = and / not / nor / or
 element_op = exists / typeOp
 eval_op = expr / jsonSchema / mod / regex / text / where
-geo_op = geoIntersects / geoWithin / nearOp / minDistanceOp / maxDistanceOp / geometry
+geo_op = geoIntersects / geoWithin / nearSphere / nearOp / minDistanceOp / maxDistanceOp / geometry
 array_op = all / elemMatch / sizeOp
 bit_op = bitsAllClear / bitsAllSet / bitsAnyClear / bitsAnySet
 project_op = elemMatch / metaOp / slice
@@ -523,9 +523,9 @@ bitsAllClear    "$bitsAllClear"  = "$bitsAllClear"  / "'$bitsAllClear'"  { retur
 bitsAnyClear    "$bitsAnyClear"  = "$bitsAnyClear"  / "'$bitsAnyClear'"  { return '$bitsAnyClear' }  / '"$bitsAnyClear"'  { return '$bitsAnyClear'  }
 
 /* GeoMess */
-//nearSphere      "$nearSphere"    = "$nearSphere"    / "'$nearSphere'"    { return '$nearSphere' }    / '"$nearSphere"'    { return '$nearSphere'    }
-nearOp     "$near"      = "$near"      / "'$near'"      { return '$near'    } / '"$near"'     { return '$near'     }
-near       "near"       = !"$near" "near"       / !"'$near'" "'near'"       { return 'near'     } / !'"$near"' '"near"'      { return 'near'      }
+near       "near"           = !"$near" !"$nearSphere" n:"near" { return n }   / !"'$near'" "'near'"     { return 'near'     }     / !'"$near"' '"near"'           { return 'near'         }
+nearOp     "$near"          = n:"$near"                        { return n }   / !"nearSphere" "'$near'" { return '$near'    }     / !'"$nearSphere"' '"$near"'    { return '$near'        }
+nearSphere "$nearSphere"    = n:"$nearSphere"                  {  return n }  / "'$nearSphere'"         { return '$nearSphere' }  / '"$nearSphere"'               { return '$nearSphere'  }
 
 
 // A few contexts allow only id.  Note that a context requiring id must come before field

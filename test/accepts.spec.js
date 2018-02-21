@@ -858,34 +858,35 @@ describe('#accepts', () => {
             'k: {$exists: 1}, l: {$type: 1},' +
             'm: {$expr: 1}, n: {$jsonSchema: 1}, o: {$mod: 1}, p: {$regex: 1}, q: {$text: 1}, r: {$where: 1},' +
             's: {$geoIntersects: 1}, t: {$geoWithin: 1},' +
-            // 'v: {$nearSphere: 1}, u: {$near: 1},' + // TODO: FIX NEAR. Prevent $geoNear from taking $near in query.
+            'v: {"$nearSphere": 1},' +
+            'u: {"$near": 1},' + // TODO: FIX NEAR. Prevent $geoNear from taking $near in query.
             'w: {$all: 1}, x: {$elemMatch: 1}, y: {$size: 1},' +
             'z: {$bitsAllClear: 1}, a1: {$bitsAllSet: 1}, b1: {$bitsAnyClear: 1}, c1: {$bitsAnySet: 1},' +
             'd1: {$comment: 1},' +
             'e1: {$elemMatch: 1}, f1: {$meta: 1}, g1: {$slice: 1},' +
           '}}');
       });
+      // TODO: Allow $near without quotes
       it('accepts $near', () => {
         accepts('{' +
           '$match: {' +
-          // '   v: {$nearSphere: 1},' +
-          '   u: { $near: 1 }' +
+          '   u: { "$near": 1 }' +
           '}}');
       });
-      // it('accepts $near', () => {
-      //   accepts('{' +
-      //      '$match: {' +
-      //       'location: {' +
-      //         '$near: 1' +
-      //         // '{' +
-      //           // '$geometry: { type: "Point", coordinates: [ 100, 101] },' +
-      //           // '$maxDistance: 100,' +
-      //           // '$minDistance: 10' +
-      //         // '}' +
-      //        '}' +
-      //      '}}'
-      //   );
-      // });
+      it('accepts $near', () => {
+        accepts('{' +
+           '$match: {' +
+            'location: {' +
+              '"$near": ' +
+              '{' +
+                '$geometry: { type: "Point", coordinates: [ 100, 101] },' +
+                '$maxDistance: 100,' +
+                '$minDistance: 10' +
+              '}' +
+             '}' +
+           '}}'
+        );
+      });
       it('rejects aggregation operators', () => {
         rejects('{' +
           '$match: {' +
