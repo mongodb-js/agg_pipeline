@@ -144,7 +144,7 @@ output_doc = "{" g:output_item gArr:("," output_item)* ","? "}"
         return objOfArray([g].concat(cleanAndFlatten(gArr)))
     }
 bucket_item = groupBy ":" agg_expression
-            / boundaries ":" a:agg_array // TODO: complicated, not sure how specific we have to check for.
+            / boundaries ":" a:agg_array
             / default ":" l:literal
             / output ":" output_doc
 bucket_document ="{" g:bucket_item gArr:("," bucket_item)* ","? "}"
@@ -216,7 +216,6 @@ facet_document = "{" a:facet_item aArr:("," facet_item)* ","? "}"
     }
 
 geoNear "$geoNear" = "$geoNear" / "'$geoNear'" { return '$geoNear' } / '"$geoNear"' { return '$geoNear' }
-near "near" = "near" / "'near'" { return 'near' } / '"near"' { return 'near' }
 distanceField "distanceField" = "distanceField" / "'distanceField'" { return 'distanceField' } / '"distanceField"' { return 'distanceField' }
 spherical "spherical" = "spherical" / "'spherical'" { return 'spherical' } / '"spherical"' { return 'spherical' }
 geoLimit "limit" = "limit" / "'limit'" { return 'limit' } / '"limit"' { return 'limit' }
@@ -269,7 +268,7 @@ graphLookup_item = from ":" s:string
                  / as ":" s:string
                  / maxDepth ":" positive_integer
                  / depthField ":" s:string
-                 / restrictSearchWithMatch ":" query_object // TODO: really confusing documentation about what supported here.
+                 / restrictSearchWithMatch ":" query_object
 graphLookup_document = "{" g:graphLookup_item gArr:("," graphLookup_item)* ","? "}"
     {
         return objOfArray(checkRequiredOperators([g].concat(cleanAndFlatten(gArr)), ['from', 'startWith', 'connectFromField', 'connectToField', 'as']))
@@ -289,7 +288,6 @@ group_document = "{" g:group_item gArr:("," group_item)* ","? "}"
     }
 
 indexStats "$indexStats" = '"$indexStats"' { return '$indexStats' } / "'$indexStats'" { return '$indexStats' } / "$indexStats"
-// TODO: need grammar for all of indexStats, should support top level expressions ($and and $or)
 indexStats_document = "{""}"
     {
         return {}
@@ -370,7 +368,6 @@ match_document = "{" "}"
 
 out "out" = '"$out"' { return '$out' } / "'$out'" { return '$out' } / "$out"
 
-// TODO: can't use dot notation when in a nested document when projecting
 project "$project"= '"$project"' { return '$project' } / "'$project'" { return '$project' } / "$project"
 project_item =   i:id    ":" e:("0" / "false" / "1" / "true")              { return [i, ':', toBool(e)] }
                / f:field ":" e:("0" / "false" / "1" / "true" / expression) { return [f, ':', toBool(e)] }
@@ -447,8 +444,6 @@ unwind_document = s:string
 // expressions //
 /////////////////
 
-// TODO: handle field paths, i.e. fields with $ prefixed
-
 accumulator    = sum
                / avg
                / first
@@ -480,16 +475,16 @@ query_operator = comp_op
                 / array_op
                 / comment
                 / project_op
-                / field // TODO: needed?
+                / field
 
 comp_op  = eq / gte / gt / in / lte / lt / ne / nin
 log_op = and / not / nor / or
 element_op = exists / typeOp
 eval_op = expr / jsonSchema / mod / regex / text / where
-geo_op = geoIntersects / geoWithin / nearSphere / nearOp / minDistanceOp / maxDistanceOp / geometry
+geo_op = geoIntersects / geoWithin / nearOp / minDistanceOp / maxDistanceOp / geometry
 array_op = all / elemMatch / sizeOp
 bit_op = bitsAllClear / bitsAllSet / bitsAnyClear / bitsAnySet
-project_op = elemMatch / metaOp / slice  // TODO: $
+project_op = elemMatch / metaOp / slice
 
 lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / '"$lte"'      { return '$lte'      }
 gte        "$gte"       = "$gte"       / "'$gte'"       { return '$gte'     } / '"$gte"'      { return '$gte'      }
@@ -510,8 +505,6 @@ mod        "$mod"       = "$mod"       / "'$mod'"       { return '$mod'     } / 
 regex      "$regex"     = "$regex"     / "'$regex'"     { return '$regex'   } / '"$regex"'    { return '$regex'    }
 text       "$text"      = "$text"      / "'$text'"      { return '$text'    } / '"$text"'     { return '$text'     }
 where      "$where"     = "$where"     / "'$where'"     { return '$where'   } / '"$where"'    { return '$where'    }
-nearSphere      "$nearSphere"    = "$nearSphere"    / "'$nearSphere'"    { return '$nearSphere' }    / '"$nearSphere"'    { return '$nearSphere'    }
-nearOp     "$near"      = "$near"      / "'$near'"      { return '$near'    } / '"$near"'     { return '$near'     }
 all        "$all"       = "$all"       / "'$all'"       { return '$all'     } / '"$all"'      { return '$all'      }
 sizeOp     "$size"      = "$size"      / "'$size'"      { return '$size'    } / '"$size"'     { return '$size'     }
 metaOp     "$meta"      = "$meta"      / "'$meta'"      { return '$meta'    } / '"$meta"'     { return '$meta'     }
@@ -528,6 +521,11 @@ bitsAllSet      "$bitsAllSet"    = "$bitsAllSet"    / "'$bitsAllSet'"    { retur
 bitsAnySet      "$bitsAnySet"    = "$bitsAnySet"    / "'$bitsAnySet'"    { return '$bitsAnySet' }    / '"$bitsAnySet"'    { return '$bitsAnySet'    }
 bitsAllClear    "$bitsAllClear"  = "$bitsAllClear"  / "'$bitsAllClear'"  { return '$bitsAllClear' }  / '"$bitsAllClear"'  { return '$bitsAllClear'  }
 bitsAnyClear    "$bitsAnyClear"  = "$bitsAnyClear"  / "'$bitsAnyClear'"  { return '$bitsAnyClear' }  / '"$bitsAnyClear"'  { return '$bitsAnyClear'  }
+
+/* GeoMess */
+//nearSphere      "$nearSphere"    = "$nearSphere"    / "'$nearSphere'"    { return '$nearSphere' }    / '"$nearSphere"'    { return '$nearSphere'    }
+nearOp     "$near"      = "$near"      / "'$near'"      { return '$near'    } / '"$near"'     { return '$near'     }
+near       "near"       = !"$near" "near"       / !"'$near'" "'near'"       { return 'near'     } / !'"$near"' '"near"'      { return 'near'      }
 
 
 // A few contexts allow only id.  Note that a context requiring id must come before field
@@ -600,7 +598,7 @@ operation "Operation"
 op_string "OperationString" = [" / '] operation [" / ']
 
 
-field "Field Name" // TODO: better grammar for field names
+field "Field Name"
   = f:[_A-Za-z] s:([_A-Za-z0-9]*) { return f + s.join("") }
   / string
 

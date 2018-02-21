@@ -23,6 +23,7 @@ describe('#accepts', () => {
         rejects('{$limit: "1"}');
       });
     });
+
     describe('$count', () => {
       it('accepts a string', () => {
         accepts('{$count: "id field"}');
@@ -31,6 +32,7 @@ describe('#accepts', () => {
         rejects('{$count: 1}');
       });
     });
+
     describe('$skip', () => {
       it('accepts a positive integer', () => {
         accepts('{$skip: 10}');
@@ -42,6 +44,7 @@ describe('#accepts', () => {
         rejects('{$skip: "10"}');
       });
     });
+
     describe('$out', () => {
       it('accepts a string', () => {
         accepts('{$out: "coll"}');
@@ -50,6 +53,7 @@ describe('#accepts', () => {
         rejects('{$out: 1}');
       });
     });
+
     describe('$indexStats', () => {
       it('accepts an empty document', () => {
         accepts('{$indexStats: {}}');
@@ -62,6 +66,7 @@ describe('#accepts', () => {
       });
     });
   });
+
   describe('expressions with only expr', () => {
     describe('$sortByCount', () => {
       it('accepts a $fieldname', () => {
@@ -89,8 +94,8 @@ describe('#accepts', () => {
         accepts('{$sortByCount: {"$test": "$testing"}}');
       });
     });
-    describe('redact', () => {
-      // TODO: Check if evaluates to $$DESCEND/PRUNE/$$KEEP?
+
+    describe('$redact', () => {
       it('accepts $cond', () => {
         accepts('{$redact: {$cond: {\n' +
           '          if: { $eq: [ "$level", 5 ] },\n' +
@@ -108,6 +113,7 @@ describe('#accepts', () => {
       });
     });
   });
+
   describe('expressions with required set fields', () => {
     describe('$sample', () => {
       it('accepts a doc with size', () => {
@@ -126,6 +132,7 @@ describe('#accepts', () => {
         rejects('{$sample: "10"}');
       });
     });
+
     describe('$replaceRoot', () => {
       it('accepts a doc with newRoot', () => {
         accepts('{ $replaceRoot: { newRoot: {x: 10} } }');
@@ -147,6 +154,7 @@ describe('#accepts', () => {
       });
     });
   });
+
   describe('expressions with optional set fields', () => {
     describe('$collStats', () => { // TODO: validate that its the first? Why is count in the docs?
       it('accepts an empty doc', () => {
@@ -173,6 +181,7 @@ describe('#accepts', () => {
         rejects('{ $collStats: {somethingelse: 1} }');
       });
     });
+
     describe('$currentOp', () => {
       it('accepts an empty doc', () => {
         accepts('{ $currentOp: {} }');
@@ -195,6 +204,7 @@ describe('#accepts', () => {
         rejects('{ $currentOp: {somethingelse: 1} }');
       });
     });
+
     describe('$lookup', () => {
       it('rejects an empty doc', () => {
         rejects('{$lookup: {}}');
@@ -241,6 +251,7 @@ describe('#accepts', () => {
           '}');
       });
     });
+
     describe('$geoNear', () => {
       it('accepts full doc', () => {
         accepts(
@@ -305,6 +316,7 @@ describe('#accepts', () => {
           '{$geoNear: { near: true, distanceField: "field", query: 1 } }'
         );
       });
+
       describe('near', () => {
         it('rejects non-point geoJSON for near', () => {
           rejects(
@@ -348,6 +360,7 @@ describe('#accepts', () => {
       });
     });
   });
+
   describe('expressions with mixed optional and required fields', () => {
     describe('$group', () => {
       it('accepts a group with _id', () => {
@@ -369,6 +382,7 @@ describe('#accepts', () => {
         accepts('{ $group: { _id: {$abs: 1}, field1: { $sum: {$abs: 1} } } }');
       });
     });
+
     describe('$graphLookup', () => {
       it('accepts min doc', () => {
         accepts('{$graphLookup: {' +
@@ -428,7 +442,18 @@ describe('#accepts', () => {
           'connectFromField: "reportsTo", connectToField: "name",' +
           'as: "reportingHierarchy", restrictSearchWithMatch: {x: {$literal: 1}}}}');
       });
+      it('accepts a regular doc', () => {
+        accepts('{$graphLookup: { from: "employees", startWith: "$reportsTo",' +
+          'connectFromField: "reportsTo", connectToField: "name",' +
+          'as: "reportingHierarchy",' +
+          'restrictSearchWithMatch: {x: 1}}}');
+        accepts('{$graphLookup: { from: "employees", startWith: "$reportsTo",' +
+          'connectFromField: "reportsTo", connectToField: "name",' +
+          'as: "reportingHierarchy",' +
+          'restrictSearchWithMatch: {"x": 1}}}');
+      });
     });
+
     describe('$bucket', () => {
       it('accepts min doc', () => {
         accepts('{$bucket: {' +
@@ -479,6 +504,7 @@ describe('#accepts', () => {
           '}');
       });
     });
+
     describe('$bucketAuto', () => {
       it('accepts min doc', () => {
         accepts('{$bucketAuto: {' +
@@ -546,8 +572,9 @@ describe('#accepts', () => {
           '}');
       });
     });
+
     // TODO: supported in compass?
-    describe('listLocalSessions', () => {
+    describe('$listLocalSessions', () => {
       it('accepts an empty doc', () => {
         accepts('{$listLocalSessions: {}}');
       });
@@ -565,7 +592,8 @@ describe('#accepts', () => {
           ']}}');
       });
     });
-    describe('listSessions', () => {
+
+    describe('$listSessions', () => {
       it('accepts an empty doc', () => {
         accepts('{$listSessions: {}}');
       });
@@ -591,7 +619,7 @@ describe('#accepts', () => {
         accepts('{$addFields: {' +
           'field1: "value1",' +
           'field2: 1,' +
-          'field3: {x: 1},' +
+          '"field3": {x: 1},' +
           '}}');
       });
       it('rejects fields with $', () => {
@@ -599,9 +627,17 @@ describe('#accepts', () => {
           '$field1: "value1",' +
           '}}');
       });
+      it('rejects a fieldname with space', () => {
+        rejects('{addFields: {field name: 1}}');
+      });
+      it('accepts a fieldname with space and quotes', () => {
+        accepts('{$addFields: {' +
+          '"fiel d1": "value1"' +
+          '}}');
+      });
       it('accepts one field', () => {
         accepts('{$addFields: {' +
-          'field1: "value1",' +
+          'field1: "value1"' +
           '}}');
       });
       it('rejects empty', () => {
@@ -615,8 +651,14 @@ describe('#accepts', () => {
         accepts('{$addFields: {' +
           'field1: {$abs: 100},' +
           '}}');
+        it('accepts a nested field', () => {
+          accepts('{$addFields: {' +
+            '   field1.subfield: {$abs: 100},' +
+            '}}');
+        });
       });
     });
+
     describe('$sort', () => {
       it('accepts multiple fields', () => {
         accepts('{$sort: {' +
@@ -658,6 +700,7 @@ describe('#accepts', () => {
           '}}');
       });
     });
+
     describe('$match', () => {
       it('accepts a simple document', () => {
         accepts('{$match: {' +
@@ -699,6 +742,7 @@ describe('#accepts', () => {
         rejects('{ $match: { $x: 1 } }');
       });
     });
+
     describe('$project', () => {
       it('accepts a included field', () => {
         accepts('{$project: {' +
@@ -729,13 +773,19 @@ describe('#accepts', () => {
       });
       it('accepts nested field', () => {
         accepts('{$project: {' +
-          '"field.nested": {"$literal": "testing"},' + // TODO: need to be supported without quotation?
+          '"field.nested": "$new.field.name",' +
+          '}}');
+      });
+      it('rejects nested field without quotes', () => {
+        rejects('{$project: {' +
+          'field.nested: {"$literal": "testing"},' +
           '}}');
       });
       it('rejects empty doc', () => {
         rejects('{$project{}}');
       });
     });
+
     describe('$facet', () => {
       it('rejects empty object', () => {
         rejects('{$facet: {}}');
@@ -783,7 +833,7 @@ describe('#accepts', () => {
     });
   });
 
-  describe('Query operators', () => {
+  describe('Limit to query syntax', () => {
     describe('$match', () => {
       it('accepts query operators', () => {
         accepts('{' +
@@ -815,6 +865,13 @@ describe('#accepts', () => {
             'e1: {$elemMatch: 1}, f1: {$meta: 1}, g1: {$slice: 1},' +
           '}}');
       });
+      it('accepts $near', () => {
+        accepts('{' +
+          '$match: {' +
+          // '   v: {$nearSphere: 1},' +
+          '   u: { $near: 1 }' +
+          '}}');
+      });
       // it('accepts $near', () => {
       //   accepts('{' +
       //      '$match: {' +
@@ -842,6 +899,7 @@ describe('#accepts', () => {
           '}}');
       });
     });
+
     describe('$geoNear', () => {
       it('accepts query operators', () => {
         accepts('{$geoNear: {' +
@@ -896,7 +954,16 @@ describe('#accepts', () => {
       });
     });
   });
+  describe('Limit to aggregation syntax', () => {
+    it('accepts $let', () => {
+      accepts(
+      '{$addFields: {field: {$let: {vars: {x: {$sum: [5,6]} }, in: { $mergeObjects: [{y: "$$x"}, {q: 1}] } } }}}');
+    });
+  });
 
+  describe('Extended JSON Syntax', () => {
+
+  });
   describe('Invalid stage', () => {
     it('rejects an empty stage', () => {
       rejects('{}');
@@ -912,6 +979,9 @@ describe('#accepts', () => {
     });
     it('rejects a pipeline', () => {
       rejects('[{$match: {x: 1}}, {$sort: 1}]');
+    });
+    it('rejects text', () => {
+      rejects('a pipeline');
     });
   });
 });
