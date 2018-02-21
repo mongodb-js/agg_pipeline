@@ -379,7 +379,7 @@ out "out" = '"$out"' { return '$out' } / "'$out'" { return '$out' } / "$out"
 
 project "$project"= '"$project"' { return '$project' } / "'$project'" { return '$project' } / "$project"
 project_item =   i:id    ":" e:("0" / "false" / "1" / "true")              { return [i, ':', toBool(e)] }
-               / f:field ":" e:("0" / "false" / "1" / "true" / expression) { return [f, ':', toBool(e)] }
+               / f:field ":" e:("0" / "false" / "1" / "true" / agg_expression) { return [f, ':', toBool(e)] }
 // Project actually must have at least one item
 project_document  = "{" s:project_item sArr:("," project_item)* ","? "}" 
     {
@@ -424,7 +424,7 @@ sbc_object "AggObject" = "{" oi:sbc_object_item oiArr:("," sbc_object_item)* ","
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
-sortByCount_document = string / sbc_object
+sortByCount_document = s:string { checkIsFieldPath(s) } / sbc_object
 
 unwind "$unwind"= '"$unwind"' { return '$unwind' } / "'$unwind'" { return '$unwind' }  / "$unwind"
 path                       'path'
@@ -467,8 +467,8 @@ sum        "$sum"        = "$sum"        / "'$sum'"        { return '$sum'      
 avg        "$avg"        = "$avg"        / "'$avg'"        { return '$avg'       } / '"$avg"'       { return '$avg'       }
 first      "$first"      = "$first"      / "'$first'"      { return '$first'     } / '"$first"'     { return '$first'     }
 last       "$last"       = "$last"       / "'$last'"       { return '$last'      } / '"$last"'      { return '$last'      }
-max        "$max"        = "$max"        / "'$max'"        { return '$max'       } / '"$max"'       { return '$max'       }
-min        "$min"        = (!"$minute" "$min")  / (!"'$minute'" "'$min'")        { return '$min'    } / (!'"$minute"' '"$min"') { return '$min' }
+max        "$max"        = (!"$maxDistance" "$max")             / (!"'$maxDistance'" "'$max'")              { return '$max' } / (!'"$maxDistance"' '"$max"')              { return '$max' }
+min        "$min"        = (!"$minute" !"$minDistance" "$min")  / (!"'$minute'" !"'$minDistance'" "'$min'") { return '$min' } / (!'"$minute"' !'"$minDistance"' '"$min"') { return '$min' }
 push       "$push"       = "$push"       / "'$push'"       { return '$push'      } / '"$push"'      { return '$push'      }
 addToSet   "$addToSet"   = "$addToSet"   / "'$addToSet'"   { return '$addToSet'  } / '"$addToSet"'  { return '$addToSet'  }
 stdDevPop  "$stdDevPop"  = "$stdDevPop"  / "'$stdDevPop'"  { return '$stdDevPop' } / '"$stdDevPop"' { return '$stdDevPop' }
@@ -501,7 +501,6 @@ eq         "$eq"        = "$eq"        / "'$eq'"        { return '$eq'      } / 
 gt         "$gt"        = "$gt"        / "'$gt'"        { return '$gt'      } / '"$gt"'       { return '$gt'       }
 in         "$in"        = (!"$index" "$in") / (!"'$index" "'$in'")   { return '$in'      } / (!'"$index' '"$in"')       { return '$in'       }
 lt         "$lt"        = "$lt"        / "'$lt'"        { return '$lt'      } / '"$lt"'       { return '$lt'       }
-ne         "$ne"        = "$ne"        / "'$ne'"        { return '$ne'      } / '"$ne"'       { return '$ne'       }
 nin        "$nin"       = "$nin"       / "'$nin'"       { return '$nin'     } / '"$nin"'      { return '$nin'      }
 and        "$and"       = "$and"       / "'$and'"       { return '$and'     } / '"$and"'      { return '$and'      }
 or         "$or"        = "$or"        / "'$or'"        { return '$or'      } / '"$or"'       { return '$or'       }
@@ -514,7 +513,7 @@ mod        "$mod"       = "$mod"       / "'$mod'"       { return '$mod'     } / 
 regex      "$regex"     = "$regex"     / "'$regex'"     { return '$regex'   } / '"$regex"'    { return '$regex'    }
 text       "$text"      = "$text"      / "'$text'"      { return '$text'    } / '"$text"'     { return '$text'     }
 where      "$where"     = "$where"     / "'$where'"     { return '$where'   } / '"$where"'    { return '$where'    }
-all        "$all"       = "$all"       / "'$all'"       { return '$all'     } / '"$all"'      { return '$all'      }
+all        "$all"       = (!"$allElementsTrue" "$all")  / (!"'$allElementsTrue" "'$all'")     { return '$all'      } / (!'"$allElementsTrue' '"$all"') { return '$all'      }
 metaOp     "$meta"      = "$meta"      / "'$meta'"      { return '$meta'    } / '"$meta"'     { return '$meta'     }
 slice      "$slice"     = "$slice"     / "'$slice'"     { return '$slice'   } / '"$slice"'    { return '$slice'    }
 comment    "$comment"   = "$comment"   / "'$comment'"   { return '$comment' } / '"$comment"'  { return '$comment'  }
@@ -531,9 +530,10 @@ bitsAllClear    "$bitsAllClear"  = "$bitsAllClear"  / "'$bitsAllClear'"  { retur
 bitsAnyClear    "$bitsAnyClear"  = "$bitsAnyClear"  / "'$bitsAnyClear'"  { return '$bitsAnyClear' }  / '"$bitsAnyClear"'  { return '$bitsAnyClear'  }
 
 /* Mess */
+nearSphere "$nearSphere"    = "$nearSphere"                      / "'$nearSphere'"                          { return '$nearSphere' }    / '"$nearSphere"'                           { return '$nearSphere'  }
+nearOp     "$near"          = (!"$nearSphere" "$near")           / (!"nearSphere" "'$near'")                { return '$near'    }       / (!'"$nearSphere"' '"$near"')              { return '$near'        }
+ne         "$ne"            = (!"$near" "$ne")                   / (!"'$near" "'$ne'")                      { return '$ne'      }       / (!'"$near' '"$ne"')                       { return '$ne'          }
 near       "near"           = !"$near" !"$nearSphere" n:"near" { return n }   / !"'$near'" !"'$nearSphere'" "'near'" { return 'near'     }     / !'"$near"' !'"$nearSphere"' '"near"'   { return 'near'         }
-nearOp     "$near"          = !"$nearSphere" n:"$near"         { return n }   / !"nearSphere" "'$near'"              { return '$near'    }     / !'"$nearSphere"' '"$near"'             { return '$near'        }
-nearSphere "$nearSphere"    = n:"$nearSphere"                  { return n }   / "'$nearSphere'"                      { return '$nearSphere' }  / '"$nearSphere"'                        { return '$nearSphere'  }
 
 sizeOp     "$size"      = "$size"      / "'$size'"      { return '$size'    } / '"$size"'     { return '$size'     }
 
