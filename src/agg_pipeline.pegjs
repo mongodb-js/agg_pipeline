@@ -468,7 +468,7 @@ avg        "$avg"        = "$avg"        / "'$avg'"        { return '$avg'      
 first      "$first"      = "$first"      / "'$first'"      { return '$first'     } / '"$first"'     { return '$first'     }
 last       "$last"       = "$last"       / "'$last'"       { return '$last'      } / '"$last"'      { return '$last'      }
 max        "$max"        = "$max"        / "'$max'"        { return '$max'       } / '"$max"'       { return '$max'       }
-min        "$min"        = "$min"        / "'$min'"        { return '$min'       } / '"$min"'       { return '$min'       }
+min        "$min"        = (!"$minute" "$min")  / (!"'$minute'" "'$min'")        { return '$min'    } / (!'"$minute"' '"$min"') { return '$min' }
 push       "$push"       = "$push"       / "'$push'"       { return '$push'      } / '"$push"'      { return '$push'      }
 addToSet   "$addToSet"   = "$addToSet"   / "'$addToSet'"   { return '$addToSet'  } / '"$addToSet"'  { return '$addToSet'  }
 stdDevPop  "$stdDevPop"  = "$stdDevPop"  / "'$stdDevPop'"  { return '$stdDevPop' } / '"$stdDevPop"' { return '$stdDevPop' }
@@ -495,11 +495,11 @@ array_op = all / elemMatch / sizeOp
 bit_op = bitsAllClear / bitsAllSet / bitsAnyClear / bitsAnySet
 project_op = elemMatch / metaOp / slice
 
-lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / "\"$lte\""      { return '$lte'      }
+lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / '"$lte"'      { return '$lte'      }
 gte        "$gte"       = "$gte"       / "'$gte'"       { return '$gte'     } / '"$gte"'      { return '$gte'      }
 eq         "$eq"        = "$eq"        / "'$eq'"        { return '$eq'      } / '"$eq"'       { return '$eq'       }
 gt         "$gt"        = "$gt"        / "'$gt'"        { return '$gt'      } / '"$gt"'       { return '$gt'       }
-in         "$in"        = "$in"        / "'$in'"        { return '$in'      } / '"$in"'       { return '$in'       }
+in         "$in"        = (!"$index" "$in") / (!"'$index" "'$in'")   { return '$in'      } / (!'"$index' '"$in"')       { return '$in'       }
 lt         "$lt"        = "$lt"        / "'$lt'"        { return '$lt'      } / '"$lt"'       { return '$lt'       }
 ne         "$ne"        = "$ne"        / "'$ne'"        { return '$ne'      } / '"$ne"'       { return '$ne'       }
 nin        "$nin"       = "$nin"       / "'$nin'"       { return '$nin'     } / '"$nin"'      { return '$nin'      }
@@ -543,14 +543,14 @@ agg_operator = accumulator
              / arrayElemAt / arrayToObject / ceil / cmp / concatArrays / concat
              / dateFromParts / dateFromString / dateToString / dateToParts
              / dayOfMonth / dayOfWeek / dayOfYear / divide / exp / filter
-             / floor / hour / ifNull / indexOfArray / indexOfBytes / indexOfCP
-             / isArray / isoDayOfWeek / isoWeek / isoWeekYear / let / literalOp
+             / floor / hour / ifNull / indexOfBytes / indexOfCP / indexOfArray
+             / isArray / isoDayOfWeek / isoWeekYear / isoWeek / let / literalOp
              / ln / log10 / log / map / mergeObjects / millisecond / minute
              / month / multiply / objectToArray / pow / range / reduce
              / reverseArray / second / setDifference / setEquals / setIntersection
              / setIsSubset / setUnion / split / sqrt / strcasecmp / strLenBytes
              / strLenCP / substrBytes / substrCP / substr / subtract / switch
-             / toLower / toUpper / trunc / week / year / zip
+             / toLower / toUpper / trunc / week / year / zip / accumulator
 
 abs                     "$abs"              = "$abs"             / "'$abs'" { return '$abs' }                           / '"$abs"' { return '$abs' }
 add                     "$add"              = "$add"             / "'$add'" { return '$add' }                           / '"$add"' { return '$add' }
@@ -581,8 +581,8 @@ indexOfBytes            "$indexOfBytes"     = "$indexOfBytes"    / "'$indexOfByt
 indexOfCP               "$indexOfCP"        = "$indexOfCP"       / "'$indexOfCP'" { return '$indexOfCP' }               / '"$indexOfCP"' { return '$indexOfCP' }
 isArray                 "$isArray"          = "$isArray"         / "'$isArray'" { return '$isArray' }                   / '"$isArray"' { return '$isArray' }
 isoDayOfWeek            "$isoDayOfWeek"     = "$isoDayOfWeek"    / "'$isoDayOfWeek'" { return '$isoDayOfWeek' }         / '"$isoDayOfWeek"' { return '$isoDayOfWeek' }
-isoWeek                 "$isoWeek"          = "$isoWeek"         / "'$isoWeek'" { return '$isoWeek' }                   / '"$isoWeek"' { return '$isoWeek' }
 isoWeekYear             "$isoWeekYear"      = "$isoWeekYear"     / "'$isoWeekYear'" { return '$isoWeekYear' }           / '"$isoWeekYear"' { return '$isoWeekYear' }
+isoWeek                 "$isoWeek"          = "$isoWeek"         / "'$isoWeek'" { return '$isoWeek' }                   / '"$isoWeek"' { return '$isoWeek' }
 let                     "$let"              = "$let"             / "'$let'" { return '$let' }                           / '"$let"' { return '$let' }
 literalOp               "$literal"          = "$literal"         / "'$literal'" { return '$literal' }                   / '"$literal"' { return '$literal' }
 ln                      "$ln"               = "$ln"              / "'$ln'" { return '$ln' }                             / '"$ln"' { return '$ln' }

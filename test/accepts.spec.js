@@ -1077,22 +1077,61 @@ describe('#accepts', () => {
           '}}');
       });
       it('accepts all operators part 2', () => {
-        // accepts('{$addFields: { "$indexOfArray": 1}}');
-          // '   q: {$dayOfWeek: 1}, w: {$dayOfYear: 1}, e: {$divide: 1}, r: {$exp: 1},' +
-          // '   t: {$filter: 1}, y: {$floor: 1}, u: {$hour: 1}, i: {$ifNull: 1}, ' +
-          // '   o: {$indexOfArray: 1}' +
-          // 'p: {$indexOfBytes: 1},' +
-          // ' a: {$indexOfCP: 1},
-          // '   a1: {$isArray: 1},' +
-          // '   s: {$isoDayOfWeek: 1}, d: {$isoWeek: 1}, f: {$isoWeekYear: 1}, ' +
-          // '   g: {$let: 1}, ' +
-          // 'g1: {$literal: 1},' +
-          // ' h: {$ln: 1}, ' +
-          // 'j: {$log10: 1}, ' +
-          // '   k: {$log: 1}, l: {$map: 1}, z: {$mergeObjects: 1}, : {$millisecond: 1},' +
-          // '   x: {$minute: 1}, c: {$month: 1}, v: {$mulitply: 1}, b: {$objectToArray: 1}, ' +
-          // '   n: {$pow: 1}, m: {$range: 1}, : {$reduce: 1}, 1: {$reverseArray: 1}, 2: {$second: 1}, 3: {$setDifference: 1}, 4: {$setEquals: 1}, 5: {$setIntersection: 1}, 6: {$setIsSubset: 1}, 7: {$setUnion: 1}, 8: {$split: 1}, 9: {$sqrt: 1}, 0: {$strcasecmp: 1}, 11: {$strLenBytes: 1}, 22: {$strlenCP: 1}, 33: {$substrBytes: 1}, 44: {$substrCP: 1}, 55: {$substr: 1}, 66: {$: 1}, 77: {$subtract: 1}, 88: {$switch: 1}, 99: {$toLower: 1}, aa: {$toUpper: 1}, ss: {$trunc: 1}, dd: {$week: 1}, ff: {$year: 1}, gg: {$zip: 1} ' +
-          // '}}');
+        accepts('{$addFields: {' +
+          '   q: {$dayOfWeek: 1}, w: {$dayOfYear: 1}, e: {$divide: 1}, r: {$exp: 1},' +
+          '   t: {$filter: 1}, y: {$floor: 1}, u: {$hour: 1}, i: {$ifNull: 1}, a1: {$isArray: 1},' +
+          '   o: {$indexOfBytes: 1}, p: {$indexOfArray: 1}, a: {$indexOfCP: 1},' +
+          '   s: {$isoDayOfWeek: 1}, d: {$isoWeek: 1}, f: {$isoWeekYear: 1}, ' +
+          '   g: {$let: 1}, g1: {$literal: 1}, h: {$ln: 1}, j: {$log10: 1}, ' +
+          '   k: {$log: 1}, l: {$map: 1}, z: {$mergeObjects: 1}, z1: {$millisecond: 1},' +
+          '   x: {$minute: 1}, c: {$month: 1}, v: {$multiply: 1}, b: {$objectToArray: 1}, ' +
+          '   n: {$pow: 1}, m: {$range: 1}, m2: {$reduce: 1}, 1: {$reverseArray: 1},' +
+          '   2: {$second: 1}, 3: {$setDifference: 1}, 4: {$setEquals: 1}, 5: {$setIntersection: 1},' +
+          '   6: {$setIsSubset: 1}, 7: {$setUnion: 1}, 8: {$split: 1}, 9: {$sqrt: 1},' +
+          '   0: {$strcasecmp: 1}, 11: {$strLenBytes: 1}, 22: {$strLenCP: 1},' +
+          '   33: {$substrBytes: 1}, 44: {$substrCP: 1}, 55: {$substr: 1}, ' +
+          '   77: {$subtract: 1}, 88: {$switch: 1}, 99: {$toLower: 1}, ' +
+          '   aa: {$toUpper: 1}, ss: {$trunc: 1}, dd: {$week: 1}, ff: {$year: 1},' +
+          '   gg: {$zip: 1} ' +
+          '}}');
+      });
+      it('accepts all operators part 2 with double quotes', () => {
+        accepts('{$addFields: {' +
+          '   q: {"$dayOfWeek": 1}, w: {"$dayOfYear": 1}, e: {"$divide": 1}, r: {"$exp": 1},' +
+          '   t: {"$filter": 1}, y: {"$floor": 1}, u: {"$hour": 1}, i: {"$ifNull": 1}, a1: {"$isArray": 1},' +
+          '   o: {"$indexOfBytes": 1}, p: {"$indexOfArray": 1}, a: {"$indexOfCP": 1},' +
+          '   s: {"$isoDayOfWeek": 1}, d: {"$isoWeek": 1}, f: {"$isoWeekYear": 1}, ' +
+          '   g: {"$let": 1}, g1: {"$literal": 1}, h: {"$ln": 1}, j: {"$log10": 1}, ' +
+          '   k: {"$log": 1}, l: {"$map": 1}, z: {"$mergeObjects": 1}, z1: {"$millisecond": 1},' +
+          '   x: {"$minute": 1}, c: {"$month": 1}, v: {"$multiply": 1}, b: {"$objectToArray": 1}, ' +
+          '   n: {"$pow": 1}, m: {"$range": 1}, m2: {"$reduce": 1}, 1: {"$reverseArray": 1},' +
+          '   2: {"$second": 1}, 3: {"$setDifference": 1}, 4: {"$setEquals": 1}, 5: {"$setIntersection": 1},' +
+          '   6: {"$setIsSubset": 1}, 7: {"$setUnion": 1}, 8: {"$split": 1}, 9: {"$sqrt": 1},' +
+          '   0: {"$strcasecmp": 1}, 11: {"$strLenBytes": 1}, 22: {"$strLenCP": 1},' +
+          '   33: {"$substrBytes": 1}, 44: {"$substrCP": 1}, 55: {"$substr": 1}, ' +
+          '   77: {"$subtract": 1}, 88: {"$switch": 1}, 99: {"$toLower": 1}, ' +
+          '   aa: {"$toUpper": 1}, ss: {"$trunc": 1}, dd: {"$week": 1}, ff: {"$year": 1},' +
+          '   gg: {"$zip": 1} ' +
+          '}}');
+      });
+      it('accepts all operators part 2 with single quotes', () => {
+        accepts('{$addFields: {' +
+          '   q: {\'$dayOfWeek\': 1}, w: {\'$dayOfYear\': 1}, e: {\'$divide\': 1}, r: {\'$exp\': 1},' +
+          '   t: {\'$filter\': 1}, y: {\'$floor\': 1}, u: {\'$hour\': 1}, i: {\'$ifNull\': 1}, a1: {\'$isArray\': 1},' +
+          '   o: {\'$indexOfBytes\': 1}, p: {\'$indexOfArray\': 1}, a: {\'$indexOfCP\': 1},' +
+          '   s: {\'$isoDayOfWeek\': 1}, d: {\'$isoWeek\': 1}, f: {\'$isoWeekYear\': 1}, ' +
+          '   g: {\'$let\': 1}, g1: {\'$literal\': 1}, h: {\'$ln\': 1}, j: {\'$log10\': 1}, ' +
+          '   k: {\'$log\': 1}, l: {\'$map\': 1}, z: {\'$mergeObjects\': 1}, z1: {\'$millisecond\': 1},' +
+          '   x: {\'$minute\': 1}, c: {\'$month\': 1}, v: {\'$multiply\': 1}, b: {\'$objectToArray\': 1}, ' +
+          '   n: {\'$pow\': 1}, m: {\'$range\': 1}, m2: {\'$reduce\': 1}, 1: {\'$reverseArray\': 1},' +
+          '   2: {\'$second\': 1}, 3: {\'$setDifference\': 1}, 4: {\'$setEquals\': 1}, 5: {\'$setIntersection\': 1},' +
+          '   6: {\'$setIsSubset\': 1}, 7: {\'$setUnion\': 1}, 8: {\'$split\': 1}, 9: {\'$sqrt\': 1},' +
+          '   0: {\'$strcasecmp\': 1}, 11: {\'$strLenBytes\': 1}, 22: {\'$strLenCP\': 1},' +
+          '   33: {\'$substrBytes\': 1}, 44: {\'$substrCP\': 1}, 55: {\'$substr\': 1}, ' +
+          '   77: {\'$subtract\': 1}, 88: {\'$switch\': 1}, 99: {\'$toLower\': 1}, ' +
+          '   aa: {\'$toUpper\': 1}, ss: {\'$trunc\': 1}, dd: {\'$week\': 1}, ff: {\'$year\': 1},' +
+          '   gg: {\'$zip\': 1} ' +
+          '}}');
       });
       it('rejects query operators', () => {
         rejects('{' +
@@ -1113,14 +1152,14 @@ describe('#accepts', () => {
           '$addFields: {' +
           '   x: {$sum: 100}' +
           '}}');
-        // accepts('{' +
-        //   '$addFields: {' +
-        //   '   x: {"$sum": 100}' +
-        //   '}}');
-        // accepts('{' +
-        //   '$addFields: {' +
-        //   '   x: {\'$sum\': 100}' +
-        //   '}}');
+        accepts('{' +
+          '$addFields: {' +
+          '   x: {"$sum": 100}' +
+          '}}');
+        accepts('{' +
+          '$addFields: {' +
+          '   x: {\'$sum\': 100}' +
+          '}}');
       });
       it('rejects nested query operators', () => {
         rejects('{' +
@@ -1148,28 +1187,28 @@ describe('#accepts', () => {
     });
   });
 
-  describe('Extended JSON Syntax', () => {
-
-  });
-  describe('Invalid stage', () => {
-    it('rejects an empty stage', () => {
-      rejects('{}');
-    });
-    it('rejects a non-operator', () => {
-      rejects('{$notanoperator: 1}');
-    });
-    it('rejects a missing $', () => {
-      rejects('{sort: 1}');
-    });
-    it('rejects constants for complex operators', () => {
-      rejects('{$addFields: 1}');
-    });
-    it('rejects a pipeline', () => {
-      rejects('[{$match: {x: 1}}, {$sort: 1}]');
-    });
-    it('rejects text', () => {
-      rejects('a pipeline');
-    });
-  });
+  // describe('Extended JSON Syntax', () => {
+  //
+  // });
+  // describe('Invalid stage', () => {
+  //   it('rejects an empty stage', () => {
+  //     rejects('{}');
+  //   });
+  //   it('rejects a non-operator', () => {
+  //     rejects('{$notanoperator: 1}');
+  //   });
+  //   it('rejects a missing $', () => {
+  //     rejects('{sort: 1}');
+  //   });
+  //   it('rejects constants for complex operators', () => {
+  //     rejects('{$addFields: 1}');
+  //   });
+  //   it('rejects a pipeline', () => {
+  //     rejects('[{$match: {x: 1}}, {$sort: 1}]');
+  //   });
+  //   it('rejects text', () => {
+  //     rejects('a pipeline');
+  //   });
+  // });
 });
 
