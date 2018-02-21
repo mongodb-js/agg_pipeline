@@ -781,8 +781,8 @@ describe('#accepts', () => {
           '"field.nested": "$new.field.name",' +
           '}}');
       });
-      it('rejects nested field without quotes', () => {
-        rejects('{$project: {' +
+      it('accepts nested field without quotes', () => {
+        accepts('{$project: {' +
           'field.nested: {"$literal": "testing"},' +
           '}}');
       });
@@ -1036,6 +1036,7 @@ describe('#accepts', () => {
     describe('agg_expr', () => {
       it('accepts all operators without quotes part 1', () => {
         accepts('{$addFields: {' +
+          '   a: {$abs: 1},' +
           '   a: {$addToSet: 1}, q: {$and: 1}, w: {$avg: 1}, e: {$eq: 1}, r: {$first: 1},' +
           '   t: {$gte: 1}, y: {$gt: 1}, u: {$lte: 1}, i: {$lt: 1}, o: {$in: 1},' +
           '   p: {$last: 1}, a: {$meta: 1}, s: {$max: 1}, d: {$min: 1}, f: {$mod: 1},' +

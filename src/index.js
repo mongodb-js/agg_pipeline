@@ -49,6 +49,7 @@ module.exports = {
       parser.parse(cleanWhiteSpace(input));
       return true;
     } catch (e) {
+      console.log(e.message);
       return false;
     }
   }

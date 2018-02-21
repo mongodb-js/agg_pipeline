@@ -403,7 +403,6 @@ sample_document ="{" size ":" i:positive_integer"}"
 skip  "$skip"   = '"$skip"'   { return '$skip' }   / "'$skip'"   { return '$skip'   }  / "$skip"
 
 sort "$sort" = '"$sort"' { return '$sort' } / "'$sort'" { return '$sort' } / "$sort"
-meta "$meta" = "$meta" / "'$meta'" { return '$meta' } / '"$meta"' { return '$meta' }
 textScore "textScore" = "'textScore'" { return 'textScore' } / '"textScore"' { return 'textScore' }
 sort_item     = f:field ":" "-1"
               / f:field ":" "1"
@@ -493,7 +492,7 @@ eval_op = expr / jsonSchema / mod / regex / text / where
 geo_op = geoIntersects / geoWithin / nearSphere / nearOp / minDistanceOp / maxDistanceOp / geometry
 array_op = all / elemMatch / sizeOp
 bit_op = bitsAllClear / bitsAllSet / bitsAnyClear / bitsAnySet
-project_op = elemMatch / metaOp / slice
+project_op = elemMatch / meta / slice
 
 lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / '"$lte"'      { return '$lte'      }
 gte        "$gte"       = "$gte"       / "'$gte'"       { return '$gte'     } / '"$gte"'      { return '$gte'      }
@@ -514,7 +513,7 @@ regex      "$regex"     = "$regex"     / "'$regex'"     { return '$regex'   } / 
 text       "$text"      = "$text"      / "'$text'"      { return '$text'    } / '"$text"'     { return '$text'     }
 where      "$where"     = "$where"     / "'$where'"     { return '$where'   } / '"$where"'    { return '$where'    }
 all        "$all"       = (!"$allElementsTrue" "$all")  / (!"'$allElementsTrue" "'$all'")     { return '$all'      } / (!'"$allElementsTrue' '"$all"') { return '$all'      }
-metaOp     "$meta"      = "$meta"      / "'$meta'"      { return '$meta'    } / '"$meta"'     { return '$meta'     }
+meta       "$meta"      = "$meta"      / "'$meta'"      { return '$meta'    } / '"$meta"'     { return '$meta'     }
 slice      "$slice"     = "$slice"     / "'$slice'"     { return '$slice'   } / '"$slice"'    { return '$slice'    }
 comment    "$comment"   = "$comment"   / "'$comment'"   { return '$comment' } / '"$comment"'  { return '$comment'  }
 jsonSchema      "$jsonSchema"    = "$jsonSchema"    / "'$jsonSchema'"    { return '$jsonSchema' }    / '"$jsonSchema"'    { return '$jsonSchema'    }
@@ -540,7 +539,7 @@ sizeOp     "$size"      = "$size"      / "'$size'"      { return '$size'    } / 
 agg_operator = accumulator
              / and / eq / gte / gt / lte / lt / in / meta / mod / ne / not / or
              / sizeOp / slice / typeOp / abs / add / allElementsTrue / anyElementTrue
-             / arrayElemAt / arrayToObject / ceil / cmp / concatArrays / concat
+             / arrayElemAt / arrayToObject / ceil / cmp / concatArrays / concat / cond
              / dateFromParts / dateFromString / dateToString / dateToParts
              / dayOfMonth / dayOfWeek / dayOfYear / divide / exp / filter
              / floor / hour / ifNull / indexOfBytes / indexOfCP / indexOfArray
@@ -553,7 +552,7 @@ agg_operator = accumulator
              / toLower / toUpper / trunc / week / year / zip / accumulator
 
 abs                     "$abs"              = "$abs"             / "'$abs'" { return '$abs' }                           / '"$abs"' { return '$abs' }
-add                     "$add"              = "$add"             / "'$add'" { return '$add' }                           / '"$add"' { return '$add' }
+add                     "$add"              = (!"$addToField" !"addToSet" "$add") TODO START HERE             / "'$add'" { return '$add' }                           / '"$add"' { return '$add' }
 allElementsTrue         "$allElementsTrue"  = "$allElementsTrue" / "'$allElementsTrue'" { return '$allElementsTrue' }   / '"$allElementsTrue"' { return '$allElementsTrue' }
 anyElementTrue          "$anyElementTrue"   = "$anyElementTrue"  / "'$anyElementTrue'" { return '$anyElementTrue' }     / '"$anyElementTrue"' { return '$anyElementTrue' }
 arrayElemAt             "$arrayElemAt"      = "$arrayElemAt"     / "'$arrayElemAt'" { return '$arrayElemAt' }           / '"$arrayElemAt"' { return '$arrayElemAt' }
@@ -571,7 +570,7 @@ dayOfMonth              "$dayOfMonth"       = "$dayOfMonth"      / "'$dayOfMonth
 dayOfWeek               "$dayOfWeek"        = "$dayOfWeek"       / "'$dayOfWeek'" { return '$dayOfWeek' }               / '"$dayOfWeek"' { return '$dayOfWeek' }
 dayOfYear               "$dayOfYear"        = "$dayOfYear"       / "'$dayOfYear'" { return '$dayOfYear' }               / '"$dayOfYear"' { return '$dayOfYear' }
 divide                  "$divide"           = "$divide"          / "'$divide'" { return '$divide' }                     / '"$divide"' { return '$divide' }
-exp                     "$exp"              = "$exp"             / "'$exp'" { return '$exp' }                           / '"$exp"' { return '$exp' }
+exp                     "$exp"              = (!"$expr" "$exp")  / (!"'$expr'" "'$exp'") { return '$exp' }              / (!'"$expr"' '"$exp"') { return '$exp' }
 filter                  "$filter"           = "$filter"          / "'$filter'" { return '$filter' }                     / '"$filter"' { return '$filter' }
 floor                   "$floor"            = "$floor"           / "'$floor'" { return '$floor' }                       / '"$floor"' { return '$floor' }
 hour                    "$hour"             = "$hour"            / "'$hour'" { return '$hour' }                         / '"$hour"' { return '$hour' }
@@ -582,12 +581,12 @@ indexOfCP               "$indexOfCP"        = "$indexOfCP"       / "'$indexOfCP'
 isArray                 "$isArray"          = "$isArray"         / "'$isArray'" { return '$isArray' }                   / '"$isArray"' { return '$isArray' }
 isoDayOfWeek            "$isoDayOfWeek"     = "$isoDayOfWeek"    / "'$isoDayOfWeek'" { return '$isoDayOfWeek' }         / '"$isoDayOfWeek"' { return '$isoDayOfWeek' }
 isoWeekYear             "$isoWeekYear"      = "$isoWeekYear"     / "'$isoWeekYear'" { return '$isoWeekYear' }           / '"$isoWeekYear"' { return '$isoWeekYear' }
-isoWeek                 "$isoWeek"          = "$isoWeek"         / "'$isoWeek'" { return '$isoWeek' }                   / '"$isoWeek"' { return '$isoWeek' }
+isoWeek                 "$isoWeek"          = (!"isoWeekYear" "$isoWeek") / (!"'isoWeekYear'" "'$isoWeek'") { return '$isoWeek' } / (!'"$isoWeekYear"' '"$isoWeek"') { return '$isoWeek' }
 let                     "$let"              = "$let"             / "'$let'" { return '$let' }                           / '"$let"' { return '$let' }
 literalOp               "$literal"          = "$literal"         / "'$literal'" { return '$literal' }                   / '"$literal"' { return '$literal' }
 ln                      "$ln"               = "$ln"              / "'$ln'" { return '$ln' }                             / '"$ln"' { return '$ln' }
 log10                   "$log10"            = "$log10"           / "'$log10'" { return '$log10' }                       / '"$log10"' { return '$log10' }
-log                     "$log"              = "$log"             / "'$log'" { return '$log' }                           / '"$log"' { return '$log' }
+log                     "$log"              = (!"$log10" "$log") / (!"'$log10'" "'$log'") { return '$log' }             / (!'"$log10"' '"$log"') { return '$log' }
 map                     "$map"              = "$map"             / "'$map'" { return '$map' }                           / '"$map"' { return '$map' }
 mergeObjects            "$mergeObjects"     = "$mergeObjects"    / "'$mergeObjects'" { return '$mergeObjects' }         / '"$mergeObjects"' { return '$mergeObjects' }
 millisecond             "$millisecond"      = "$millisecond"     / "'$millisecond'" { return '$millisecond' }           / '"$millisecond"' { return '$millisecond' }
