@@ -61,7 +61,7 @@
         if (s.charAt(0) !== '$' && s.charAt(0) !== '.') {
             return s;
         }
-        error("Field paths must begin with '$' or '.', field path was: " + s, location())
+        error("Field cannot begin with '$' or '.', field was: " + s, location())
    }
 
    function cleanBackSlashes(ch) {
@@ -101,7 +101,7 @@ stage = sts:stage_syntax {
                            return obj 
                          } 
 
-stage_syntax =
+stage_syntax "AggregationStage" =
           "{" addFields         ":" addFields_document          "}"
         / "{" bucket            ":" bucket_document             "}"
         / "{" bucketAuto        ":" bucketAuto_document         "}"
@@ -459,7 +459,7 @@ unwind_document = s:string
 // expressions //
 /////////////////
 
-accumulator    = sum
+accumulator "AccumulatorOperator" = sum
                / avg
                / first
                / last
@@ -480,7 +480,7 @@ addToSet   "$addToSet"   = "$addToSet"   / "'$addToSet'"   { return '$addToSet' 
 stdDevPop  "$stdDevPop"  = "$stdDevPop"  / "'$stdDevPop'"  { return '$stdDevPop' } / '"$stdDevPop"' { return '$stdDevPop' }
 stdDevSamp "$stdDevSamp" = "$stdDevSamp" / "'$stdDevSamp'" { return '$stdDevSamp'} / '"$stdDevSamp"'{ return '$stdDevSamp'}
 
-query_operator = comp_op
+query_operator "QueryOperator" = comp_op
                 / log_op
                 / element_op
                 / eval_op
@@ -543,7 +543,7 @@ near       "near"           = !"$near" !"$nearSphere" n:"near" { return n }   / 
 
 sizeOp     "$size"      = "$size"      / "'$size'"      { return '$size'    } / '"$size"'     { return '$size'     }
 
-agg_operator = accumulator
+agg_operator "AggregationOperator" = accumulator
              / and / eq / gte / gt / lte / lt / in / meta / mod / ne / not / or
              / sizeOp / slice / typeOp / abs / add / allElementsTrue / anyElementTrue
              / arrayElemAt / arrayToObject / ceil / cmp / concatArrays / concat / cond
@@ -661,14 +661,14 @@ object_item = f:field ":" e:expression
 
 /* Any query expression */
 query_object_item = f:query_operator ":" e:query_expression
-query_array  "QueryArray" = "[""]"
+query_array  "QueryArrayExpr" = "[""]"
                  { return [] }
                / "[" e:query_expression eArr:("," query_expression)* ","? "]"
                / "[" e:expression eArr:("," expression)* ","? "]"
                  {
                     return [e].concat(cleanAndFlatten(eArr))
                  }
-query_object "QueryObject" = "{""}"
+query_object "QueryObjectExpr" = "{""}"
                  { return {} }
                 / "{" oi:query_object_item oiArr:("," query_object_item)* ","? "}"
                 / "{" oi:object_item oiArr:("," object_item)* ","? "}"
@@ -679,14 +679,14 @@ query_object "QueryObject" = "{""}"
 /* Any aggregation expression */
 agg_field = agg_operator / field
 agg_object_item = agg_field ":" agg_expression
-agg_array  "AggArray" = "[""]"
+agg_array  "AggregationArrayExpr" = "[""]"
                  { return [] }
                / "[" e:agg_expression eArr:("," agg_expression)* ","? "]"
                / "[" e:expression eArr:("," expression)* ","? "]"
                  {
                     return [e].concat(cleanAndFlatten(eArr))
                  }
-agg_object "AggObject" = "{""}"
+agg_object "AggregationObjectExpr" = "{""}"
                  { return {} }
                 / "{" oi:agg_object_item oiArr:("," agg_object_item)* ","? "}"
                 / "{" oi:object_item oiArr:("," object_item)* ","? "}"
@@ -736,7 +736,7 @@ integer "Integer" = positive_integer / "-" i:positive_integer { return -1 * i }
 positive_integer "Positive Integer"                                  
   = digits:[0-9]+ { return parseInt(digits.join(""), 10)  }
                                                          
-boolean 
+boolean "Boolean"
   = "true" { return true} / "false" { return false}
 
 null = "null" { return null}
