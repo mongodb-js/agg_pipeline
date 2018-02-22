@@ -168,10 +168,14 @@ describe('#accepts', () => {
       it('accepts all fields', () => {
         accepts(
           '{$collStats: {' +
-            'latencyStats: {histograms: true},' +
-            ' storageStats: {}' +
+          '   latencyStats: {histograms: true},' +
+          '   storageStats: {},' +
+          '   count: {}' +
           '}}'
         );
+      });
+      it('rejects nonempty count', () => {
+        rejects('{ $collStats: {count: {test: 1}} }');
       });
       it('rejects without comma', () => {
         rejects('{ $collStats: {storageStats: {} storageStats: {}} }');

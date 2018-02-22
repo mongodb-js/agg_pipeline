@@ -190,6 +190,13 @@ collStats_item = lt:latencyStats  ":" "{" h:histograms ":" b:boolean "}"
                   obj[s] = {} 
                   return obj
                 }
+               / c:( "count" / "'count'" { return 'count' } / '"count"' { return 'count' } ) ":" "{" "}"
+                {
+                  var obj = {}
+                  obj[c] = {}
+                  return obj
+                }
+
 collStats_document = "{" ci:collStats_item? cArr:("," collStats_item)* ","? "}"
     {
         return [ci].concat(cleanAndFlatten(cArr))
