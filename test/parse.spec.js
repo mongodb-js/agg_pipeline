@@ -652,7 +652,7 @@ describe('#parse', () => {
     describe('agg_expr', () => {
       it('returns all operators without quotes part 1', () => {
         accepts({$addFields: {
-          a3: {$abs: 1}, a3: {$cond: 1}, a4: {$gt: 1}, a5: {$gte: 1},
+          aa: {$abs: 1}, a3: {$cond: 1}, a4: {$gt: 1}, a5: {$gte: 1},
           a6: {$lt: 1}, a7: {$lte: 1}, a8: {$in: 1}, a: {$addToSet: 1},
           q: {$and: 1}, w: {$avg: 1}, e: {$eq: 1}, r: {$first: 1},
           t: {$gte: 1}, y: {$gt: 1}, u: {$lte: 1}, i: {$lt: 1}, o: {$in: 1},
