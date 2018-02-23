@@ -20,11 +20,14 @@
         return ret
    }
    function toBool(e) {
-        if (e === '0' || e === 'false') {
-                return 0
-        }
-        if (e === '1' || e === 'true') {
-                return 1
+        if (e === '0') {
+            return 0
+        } else if(e === 'false') {
+            return false
+        } else if (e === '1') {
+            return 1
+        } else if (e === 'true') {
+            return true
         }
         return e
    }
@@ -32,10 +35,8 @@
    // we perform this on the initial array before changing to an object
    // because it's easier for me to just use filter
    function checkExclusivity(arr) {
-        // only need to check for 1 or 0 because we convert "true" and "false" to 
-        // 1 and 0 resp
-        var exclusive = arr.filter(el => el[0] !== '_id' && el[2] === 0) 
-        var inclusive = arr.filter(el => el[2] !== 0) 
+        var exclusive = arr.filter(el => el[0] !== '_id' && !el[2])
+        var inclusive = arr.filter(el => el[2])
         if(exclusive.length > 0 && inclusive.length > 0) {
              error("Bad projection specification, cannot exclude fields other than '_id' in an inclusion projection: " + JSON.stringify(objOfArray(arr)), location())
         }
@@ -83,8 +84,8 @@
 
 // We can have just one stage in an aggregation, or we can have an actual pipeline (array)
 start   =      st:stage                                          
-               { 
-                      return [st] 
+               {
+                      return st
                }
         /      pipeline
 
@@ -180,27 +181,26 @@ histograms   "histograms"   = "histograms"   / "'histograms'"   { return 'histog
 collStats_item = lt:latencyStats  ":" "{" h:histograms ":" b:boolean "}"
                 { 
                   var obj = {} 
-                  obj[lt] = {}, 
-                  obj[lt][h] = b 
-                  return obj 
+                  obj[h] = b
+                  return [lt, ":", obj]
                 }
                / s:storageStats ":" "{" "}" 
                 { 
-                  var obj = {} 
-                  obj[s] = {} 
-                  return obj
+                  return [s, ":", {}]
                 }
                / c:( "count" / "'count'" { return 'count' } / '"count"' { return 'count' } ) ":" "{" "}"
                 {
-                  var obj = {}
-                  obj[c] = {}
-                  return obj
+                  return [c, ":", {}]
                 }
 
-collStats_document = "{" ci:collStats_item? cArr:("," collStats_item)* ","? "}"
-    {
-        return [ci].concat(cleanAndFlatten(cArr))
-    }
+collStats_document = "{" "}"
+                {
+                  return {}
+                }
+                / "{" ci:collStats_item cArr:("," collStats_item)* ","? "}"
+                {
+                    return objOfArray([ci].concat(cleanAndFlatten(cArr)))
+                }
 
 count "$count" = '"$count"' { return '$count' } / "'$count'" { return '$count' } / "$count"
 
@@ -209,20 +209,20 @@ allUsers "allUsers" = "allUsers" / "'allUsers'" { return 'allUsers' } / '"allUse
 idleConnections "idleConnections" = "idleConnections" / "'idleConnections'" { return 'idleConnections' } / '"idleConnections"' { return 'idleConnections' }
 currentOp_item = au:allUsers ":" b:boolean
                 {
-                  var obj = {}
-                  obj[au] = b
-                  return obj
+                  return [au, ":", b]
                 }
                / ic:idleConnections ":" b:boolean
                 {
-                  var obj = {}
-                  obj[ic] = b
-                  return obj
+                  return [ic, ":", b]
                 }
-currentOp_document = "{" ci:currentOp_item? cArr:("," currentOp_item)* ","? "}"
-    {
-        return [ci].concat(cleanAndFlatten(cArr))
-    }
+currentOp_document = "{" "}"
+                {
+                  return {}
+                }
+                / "{" ci:currentOp_item cArr:("," currentOp_item)* ","? "}"
+                {
+                    return objOfArray([ci].concat(cleanAndFlatten(cArr)))
+                }
 
 facet "$facet" = "$facet" / "'$facet'" { return '$facet' } / '"$facet"' { return '$facet' }
 facet_item = f:field ":" pipeline
@@ -246,9 +246,11 @@ type "type" = "type" / "'type'" { return 'type' } / '"type"' { return 'type' }
 coordinates "coordinates" = "coordinates" / "'coordinates'" { return 'coordinates' } / '"coordinates"' { return 'coordinates' }
 point "Point" = "'Point'" { return 'Point' } / '"Point"' { return 'Point' }
 legacy_coordinates = "[" n1:number "," n2:number "]"
+                      { return [n1, n2] }
 near_item = geoJSON_document / legacy_coordinates
 geoJSON_item = t:type ":" point
                / c:coordinates ":" "[" n1:number "," n2:number "]"
+                { return [c, ":", [n1, n2]] }
 geoJSON_document = "{" j1:geoJSON_item "," j2:geoJSON_item "}"
     {
         return objOfArray(checkRequiredOperators([j1, j2], ['type', 'coordinates']))
@@ -320,12 +322,12 @@ db "db"  = '"db"'  { return 'db' }  / "'db'"  { return 'db'  }  / "db"
 users_item = u:user ":" s:string
            / d:db ":" s:string
 users_document = "{" u1:users_item "," u2:users_item "}"
-    {
-        return objOfArray(checkRequiredOperators([u1, u2], ['user', 'db']))
-    }
+                {
+                  return objOfArray(checkRequiredOperators([u1, u2], ['user', 'db']))
+                }
 users_array = "[" s:users_document sArr:("," users_document)* ","? "]"
                 {
-                    return objOfArray([s].concat(cleanAndFlatten(sArr)))
+                    return [s].concat(cleanAndFlatten(sArr))
                 }
 
 
@@ -333,8 +335,18 @@ listLocalSessions_document = "{" "}"
     {
         return {}
     }
-   / "{" allUsers ":" "true" "}"
+   / "{" a:allUsers ":" "true" "}"
+    {
+      const obj = {};
+      obj[a] = true;
+      return obj
+    }
    / "{" f:users ":" u:users_array "}"
+    {
+      const obj = {};
+      obj[f] = u;
+      return obj
+    }
 
 
 lookup "$lookup" = '"$lookup"' { return '$lookup' } / "'$lookup'" { return '$lookup' } / "$lookup"
@@ -369,10 +381,10 @@ lookup_document = "{" l:lookup_item lArr:("," lookup_item)* ","? "}"
 
 // Match accepts only query operator syntax and document literals.
 match "$match" = '"$match"' { return '$match' } / "'$match'" { return '$match' } / "$match"
-match_item = field ":" query_expression
-           / and   ":" query_array
+match_item = and   ":" query_array
            / or    ":" query_array
            / expr  ":" query_expression
+           / field ":" query_expression
 match_document = "{" "}"
     {
         return {}
@@ -394,25 +406,36 @@ project_document  = "{" s:project_item sArr:("," project_item)* ","? "}"
     }
 
 redact "$redact" = '"$redact"' { return '$redact' } / "'$redact'" { return '$redact' } / "$redact"
-sys_var = "$$KEEP" / "$$PRUNE" / "$$DESCEND"
-redact_item = ["] sys_var ["] / ['] sys_var [']
-redact_document = agg_object / redact_item
+KEEP "$$KEEP" = '"$$KEEP"' { return '$$KEEP' } / "'$$KEEP'" { return '$$KEEP' }
+PRUNE "$$PRUNE" = '"$$PRUNE"' { return '$$PRUNE' } / "'$$PRUNE'" { return '$$PRUNE' }
+DESCEND "$$DESCEND" = '"$$DESCEND"' { return '$$DESCEND' } / "'$$DESCEND'" { return '$$DESCEND' }
+redact_document = agg_object / KEEP / PRUNE / DESCEND
 
 replaceRoot "$replaceRoot" = '"$replaceRoot"' { return '$replaceRoot' } / "'$replaceRoot'" { return '$replaceRoot' } / "$replaceRoot"
 newRoot "newRoot" = "newRoot" / "'newRoot'" { return 'newRoot' } / '"newRoot"' { return 'newRoot' }
-replaceRoot_document ="{" newRoot ":" o:agg_object "}"
+replaceRoot_document ="{" n:newRoot ":" o:agg_object "}"
+                {
+                  var obj = {}
+                  obj[n] = o
+                  return obj
+                }
 
 
 sample "$sample" = '"$sample"' { return '$sample' } / "'$sample'" { return '$sample' } / "$sample"
 size "size" = "size" / "'size'" { return 'size' } / '"size"' { return 'size' }
-sample_document ="{" size ":" i:positive_integer"}"
+sample_document ="{" s:size ":" i:positive_integer"}"
+                {
+                  var obj = {}
+                  obj[s] = i
+                  return obj
+                }
 
 skip  "$skip"   = '"$skip"'   { return '$skip' }   / "'$skip'"   { return '$skip'   }  / "$skip"
 
 sort "$sort" = '"$sort"' { return '$sort' } / "'$sort'" { return '$sort' } / "$sort"
 textScore "textScore" = "'textScore'" { return 'textScore' } / '"textScore"' { return 'textScore' }
-sort_item     = f:field ":" "-1"
-              / f:field ":" "1"
+sort_item     = f:field ":" "-1" { return [f, ":", -1] }
+              / f:field ":" "1" { return [f, ":", 1] }
               / f:field ":" "{" m:meta ":" t:textScore "}"
                 {
                      var obj = {}
@@ -424,13 +447,13 @@ sort_document = "{" s:sort_item sArr:("," sort_item)* ","? "}"
         return objOfArray([s].concat(cleanAndFlatten(sArr)))
     }
 
-sortByCount "$sortByCount"= '"$sortByCount"' { return '$sortByCount' } / "'$sortByCount'" { return '$sortByCount' }  / "$sortByCount"
+sortByCount "$sortByCount" = '"$sortByCount"' { return '$sortByCount' } / "'$sortByCount'" { return '$sortByCount' }  / "$sortByCount"
 sbc_object_item = agg_operator ":" agg_expression
 sbc_object "AggObject" = "{" oi:sbc_object_item oiArr:("," sbc_object_item)* ","? "}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
-sortByCount_document = s:string { checkIsFieldPath(s) } / sbc_object
+sortByCount_document = s:string { return checkIsFieldPath(s) } / sbc_object
 
 unwind "$unwind"= '"$unwind"' { return '$unwind' } / "'$unwind'" { return '$unwind' }  / "$unwind"
 path                       'path'
@@ -664,6 +687,9 @@ query_object_item = f:query_operator ":" e:query_expression
 query_array  "QueryArrayExpr" = "[""]"
                  { return [] }
                / "[" e:query_expression eArr:("," query_expression)* ","? "]"
+                {
+                  return [e].concat(cleanAndFlatten(eArr))
+                }
                / "[" e:expression eArr:("," expression)* ","? "]"
                  {
                     return [e].concat(cleanAndFlatten(eArr))
@@ -671,6 +697,9 @@ query_array  "QueryArrayExpr" = "[""]"
 query_object "QueryObjectExpr" = "{""}"
                  { return {} }
                 / "{" oi:query_object_item oiArr:("," query_object_item)* ","? "}"
+                {
+                  return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
+                }
                 / "{" oi:object_item oiArr:("," object_item)* ","? "}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
@@ -682,6 +711,9 @@ agg_object_item = agg_field ":" agg_expression
 agg_array  "AggregationArrayExpr" = "[""]"
                  { return [] }
                / "[" e:agg_expression eArr:("," agg_expression)* ","? "]"
+                 {
+                   return [e].concat(cleanAndFlatten(eArr))
+                 }
                / "[" e:expression eArr:("," expression)* ","? "]"
                  {
                     return [e].concat(cleanAndFlatten(eArr))
@@ -689,6 +721,9 @@ agg_array  "AggregationArrayExpr" = "[""]"
 agg_object "AggregationObjectExpr" = "{""}"
                  { return {} }
                 / "{" oi:agg_object_item oiArr:("," agg_object_item)* ","? "}"
+                 {
+                   return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
+                 }
                 / "{" oi:object_item oiArr:("," object_item)* ","? "}"
                  {
                    return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
@@ -728,7 +763,7 @@ string "String"
 
 
 // Float must come before integer or integer will be matched when floats occur
-number "Number" = "-"? digits:[0-9]+ '.' fraction:[0-9]* { return parseFloat(digits.join("") + '.' + fraction.join("")) }
+number "Number" = sign:"-"? digits:[0-9]+ '.' fraction:[0-9]* { return parseFloat(digits.join("") + '.' + fraction.join("")) * (sign === '-' ? -1 : 1) }
        / integer
 
 integer "Integer" = positive_integer / "-" i:positive_integer { return -1 * i }

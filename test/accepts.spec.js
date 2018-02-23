@@ -801,7 +801,29 @@ describe('#accepts', () => {
           '}}');
       });
       it('rejects empty doc', () => {
-        rejects('{$project{}}');
+        rejects('{$project: {}}');
+      });
+      it('rejects both excluding and including fields', () => {
+        rejects('{$project: {field: true, field2: false}}');
+      });
+      it('accepts excluding id and including other field', () =>{
+        accepts('{$project: {field: true, _id: false}}');
+      });
+      it('accepts a cond exclude', () => {
+        accepts('{\n' +
+          '      $project: {\n' +
+          '         title: 1,\n' +
+          '         "author.first": 1,\n' +
+          '         "author.last" : 1,\n' +
+          '         "author.middle": {\n' +
+          '            $cond: {\n' +
+          '               if: { $eq: [ "", "$author.middle" ] },\n' +
+          '               then: "$$REMOVE",\n' +
+          '               else: "$author.middle"\n' +
+          '            }\n' +
+          '         }\n' +
+          '      }\n' +
+          '   }');
       });
     });
 
