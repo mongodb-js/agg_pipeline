@@ -332,10 +332,10 @@ describe('#parse', () => {
   });
 
   describe('expressions with more than one option', () => {
-    it('accepts a field path', () => {
+    it('returns a field path', () => {
       accepts({ '$unwind': '$fieldpath' });
     });
-    it('accepts full document', () => {
+    it('returns full document', () => {
       accepts(
         {
           '$unwind': {
@@ -346,7 +346,7 @@ describe('#parse', () => {
         }
       );
     });
-    it('accepts an empty doc', () => {
+    it('returns an empty doc', () => {
       accepts({'$listLocalSessions': {}});
     });
     it('$listLocalSessions returns allUsers', () => {
@@ -561,6 +561,149 @@ describe('#parse', () => {
             }
           ]
         }
+      });
+    });
+  });
+
+  describe('Key syntax', () => {
+    describe('field', () => {
+      it('returns a field with $ or . later on in quotes', () => {
+        accepts({$addFields: {
+          't.fiel$d1': 'value1'
+        }});
+      });
+      it('returns a fieldname with space and quotes', () => {
+        accepts({$addFields: {
+          'fiel d1': 'value1'
+        }});
+      });
+      it('returns a fieldname with escaped characters', () => {
+        accepts({$addFields: {
+          '\tfiel d\r1': 'value1'
+        }});
+      });
+      it('returns a nested field name', () => {
+        accepts({$addFields: {
+          'name.name2': 'value1'
+        }});
+      });
+      it('returns an escaped double quote', () => {
+        accepts({$addFields: {
+          'fiel"d1': 'value1'
+        }});
+      });
+      it('returns an escaped single quote', () => {
+        accepts({$addFields: {
+          'fiel\'d1': 'value1'
+        }});
+      });
+      it('returns an double quote within single quotes', () => {
+        accepts({$addFields: {
+          "fiel'd1": 'value1'
+        }});
+      });
+      it('returns an single quote within double quotes', () => {
+        accepts({$addFields: {
+          'fiel"d1': 'value1'
+        }});
+      });
+      it('returns unicode', () => {
+        accepts({$addFields: {
+          'fiel☂d1': 'value1'
+        }});
+      });
+    });
+    describe('object', () => {
+      it('returns an object', () => {
+        accepts({$lookup: {
+          from: 'fromColl', localField: 'inputField',
+          foreignField: 'fromField', as: 'outArray',
+          let: { test: 'value' }
+        }}
+        );
+      });
+    });
+    describe('query_expr', () => {
+      it('returns all operators', () => {
+        accepts({
+          $match: {
+            a: {$eq: 1}, b: {$gt: 1}, c: {$gte: 1}, d: {$in: 1}, e: {$lt: 1},
+            f2: {$lte: 1}, g: {$ne: 1}, f: {$nin: 1},
+            g2: {$and: 1}, h: {$or: 1}, i: {$not: 1}, j: {$nor: 1},
+            k: {$exists: 1}, l: {$type: 1},
+            m: {$expr: 1}, n: {$jsonSchema: 1}, o: {$mod: 1}, p: {$regex: 1},
+            q: {$text: 1}, r: {$where: 1},
+            s: {$geoIntersects: 1}, t: {$geoWithin: 1},
+            v: {$nearSphere: 1}, u: {$near: 1},
+            w: {$all: 1}, x: {$elemMatch: 1}, y: {$size: 1},
+            z: {$bitsAllClear: 1}, a1: {$bitsAllSet: 1}, b1: {$bitsAnyClear: 1},
+            c1: {$bitsAnySet: 1}, d1: {$comment: 1},
+            e1: {$elemMatch: 1}, f1: {$meta: 1}, g1: {$slice: 1}
+          }});
+      });
+      it('returns one op with quotes', () => {
+        accepts({ $match: { x: {'$lte': 1} } });
+      });
+      it('returns non-operator fields', () => {
+        accepts({
+          $match: {x: 100}});
+      });
+    });
+    describe('agg_expr', () => {
+      it('returns all operators without quotes part 1', () => {
+        accepts({$addFields: {
+          a3: {$abs: 1}, a3: {$cond: 1}, a4: {$gt: 1}, a5: {$gte: 1},
+          a6: {$lt: 1}, a7: {$lte: 1}, a8: {$in: 1}, a: {$addToSet: 1},
+          q: {$and: 1}, w: {$avg: 1}, e: {$eq: 1}, r: {$first: 1},
+          t: {$gte: 1}, y: {$gt: 1}, u: {$lte: 1}, i: {$lt: 1}, o: {$in: 1},
+          p: {$last: 1}, a2: {$meta: 1}, s: {$max: 1}, d: {$min: 1},
+          f: {$mod: 1}, g: {$ne: 1}, h: {$not: 1}, j: {$or: 1}, j2: {$push: 1},
+          k: {$size: 1}, l: {$slice: 1}, z: {$stdDevPop: 1},
+          x: {$stdDevSamp: 1}, c: {$sum: 1}, v: {$type: 1}, v2: {$abs: 1},
+          b: {$add: 1}, n: {$allElementsTrue: 1}, m: {$anyElementTrue: 1},
+          m1: {$arrayElemAt: 1}, 11: {$arrayToObject: 1}, 2: {$ceil: 1},
+          3: {$cmp: 1}, 4: {$concatArrays: 1}, 5: {$concat: 1},
+          6: {$dateFromParts: 1}, 7: {$dateFromString: 1},
+          8: {$dateToString: 1}, 9: {$dateToParts: 1}, 0: {$dayOfMonth: 1}
+        }});
+      });
+      it('returns all operators part 2', () => {
+        accepts({$addFields: {
+          q: {$dayOfWeek: 1}, w: {$dayOfYear: 1}, e: {$divide: 1},
+          r: {$exp: 1}, t: {$filter: 1}, y: {$floor: 1}, u: {$hour: 1},
+          i: {$ifNull: 1}, a1: {$isArray: 1}, o: {$indexOfBytes: 1},
+          p: {$indexOfArray: 1}, a: {$indexOfCP: 1}, s: {$isoDayOfWeek: 1},
+          d: {$isoWeek: 1}, f: {$isoWeekYear: 1}, g: {$let: 1},
+          g1: {$literal: 1}, h: {$ln: 1}, j: {$log10: 1}, k: {$log: 1},
+          l: {$map: 1}, z: {$mergeObjects: 1}, z1: {$millisecond: 1},
+          x: {$minute: 1}, c: {$month: 1}, v: {$multiply: 1},
+          b: {$objectToArray: 1}, n: {$pow: 1}, m: {$range: 1},
+          m2: {$reduce: 1}, 1: {$reverseArray: 1}, 2: {$second: 1},
+          3: {$setDifference: 1}, 4: {$setEquals: 1}, 5: {$setIntersection: 1},
+          6: {$setIsSubset: 1}, 7: {$setUnion: 1}, 8: {$split: 1}, 9: {$sqrt: 1},
+          0: {$strcasecmp: 1}, 11: {$strLenBytes: 1}, 22: {$strLenCP: 1},
+          33: {$substrBytes: 1}, 44: {$substrCP: 1}, 55: {$substr: 1},
+          77: {$subtract: 1}, 88: {$switch: 1}, 99: {$toLower: 1},
+          aa: {$toUpper: 1}, ss: {$trunc: 1}, dd: {$week: 1}, ff: {$year: 1},
+          gg: {$zip: 1}
+        }});
+      });
+      it('returns accumulators', () => {
+        accepts({
+          $addFields: {
+            x: {$sum: 100}
+          }});
+        accepts({
+          $addFields: {
+            x: {'$sum': 100}
+          }});
+        accepts({
+          $addFields: {
+            x: {'$sum': 100}
+          }});
+      });
+      it('returns non-operator fields', () => {
+        accepts({$addFields: {x: 100}});
       });
     });
   });
