@@ -479,7 +479,7 @@ unwind_document = s:string
     }
 
 /////////////////
-// expressions //
+// EXPRESSIONS //
 /////////////////
 
 accumulator "AccumulatorOperator" = sum
@@ -659,7 +659,7 @@ id "_id" = '_id' / "'_id'" { return '_id' } / '"_id"' { return '_id' }
 
 // TODO: Need to expand what can be an expression, need to add dates and whatnot
 // (though these could just be checked in AST) let/map/functions/etc 
-expression = number / string / boolean / null / array / object
+expression = bson_types / number / string / boolean / null / array / object
 
 // Expression that can include query operators
 query_expression = query_object / query_array / expression
@@ -734,6 +734,42 @@ field "Field Name"
   = _ f:[_A-Za-z0-9] s:([_A-Za-z0-9 \\ .]*) { return f + s.join("") }
   / string_with_esc
 
+///////////////////
+// EXTENDED JSON //
+///////////////////
+
+bson_types = code
+           / oid
+           / binary
+           / dbref
+           / timestamp
+           / numberlong
+           / numberdecimal
+           / numberint
+           / maxkey
+           / minkey
+           / date
+           / regexp
+           / undefined
+
+code            "Code"          = "Code" "("          s:string    ")" { return s }
+oid             "ObjectId"      = "ObjectId" "("      e:string    ")" { return e }
+binary          "Binary"        = "Binary" "("        e:string    ")" { return e }
+dbref           "DBRef"         = "DBRef" "("         e:string    ")" { return e }
+timestamp       "Timestamp"     = "Timestamp" "("     e:string    ")" { return e }
+numberlong      "NumberLong"    = "NumberLong" "("    e:string    ")" { return e }
+numberdecimal   "NumberDecimal" = "NumberDecimal" "(" e:string    ")" { return e }
+numberint       "NumberInt"     = "NumberInt" "("     e:string    ")" { return e }
+maxkey          "MaxKey"        = "MaxKey" "("        e:string    ")" { return e }
+minkey          "MinKey"        = "MinKey" "("        e:string    ")" { return e }
+date            "Date"          = "Date" "("          e:string    ")" { return e }
+regexp          "RegExp"        = "RegExp" "("        e:string    ")" { return e }
+undefined       "Undefined"     = "Undefined" "("     e:string    ")" { return e }
+
+//////////////
+// LITERALS //
+//////////////
+
 string_with_esc
   = '"' chars:DoubleStringCharacter* '"' { return checkNotOperator(chars.join('')); }
   / "'" chars:SingleStringCharacter* "'" { return checkNotOperator(chars.join('')); }
@@ -780,5 +816,5 @@ literal = string / number / boolean
 
 _ "whitespace"
   = [ \t\n\r]*
-                                                         
+
                                                          

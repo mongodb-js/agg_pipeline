@@ -1216,9 +1216,26 @@ describe('#accepts', () => {
     });
   });
 
-  // describe('Extended JSON Syntax', () => {
-  //
-  // });
+  // TODO: add extended JSON type checking
+  describe('Extended JSON Syntax', () => {
+    it('accepts strings', () => {
+      accepts('{test: { ' +
+        '   x: Code("xxx"),' +
+        '   x: ObjectId("xxx"),' +
+        '   x: Binary("xxx"),' +
+        '   x: DBRef("xxx"),' +
+        '   x: Timestamp("xxx"),' +
+        '   x: NumberLong("xxx"),' +
+        '   x: NumberInt("xxx"),' +
+        '   x: NumberDecimal("xxx"),' +
+        '   x: MaxKey("xxx"),' +
+        '   x: MinKey("xxx"),' +
+        '   x: Date("xxx"),' +
+        '   x: RegExp("xxx"),' +
+        '   x: Undefined("xxx")' +
+        '}}');
+    });
+  });
   describe('Invalid stage', () => {
     it('rejects an empty stage', () => {
       rejects('{}');
