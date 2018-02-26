@@ -657,8 +657,7 @@ zip                     "$zip"              = "$zip"             / "'$zip'" { re
 // order, unlike context-free grammars, so this works.
 id "_id" = '_id' / "'_id'" { return '_id' } / '"_id"' { return '_id' }
 
-// TODO: Need to expand what can be an expression, need to add dates and whatnot
-// (though these could just be checked in AST) let/map/functions/etc 
+// (though these could just be checked in AST) let/map/functions/etc
 expression = bson_types / number / string / boolean / null / array / object
 
 // Expression that can include query operators
