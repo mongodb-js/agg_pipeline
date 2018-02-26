@@ -738,6 +738,8 @@ field "Field Name"
 // EXTENDED JSON //
 ///////////////////
 
+// https://github.com/pegjs/pegjs/issues/517
+
 bson_types = code
            / oid
            / binary
@@ -752,19 +754,19 @@ bson_types = code
            / regexp
            / undefined
 
-code            "Code"          = "Code" "("          s:string    ")" { return s }
-oid             "ObjectId"      = "ObjectId" "("      e:string    ")" { return e }
-binary          "Binary"        = "Binary" "("        e:string    ")" { return e }
-dbref           "DBRef"         = "DBRef" "("         e:string    ")" { return e }
-timestamp       "Timestamp"     = "Timestamp" "("     e:string    ")" { return e }
-numberlong      "NumberLong"    = "NumberLong" "("    e:string    ")" { return e }
-numberdecimal   "NumberDecimal" = "NumberDecimal" "(" e:string    ")" { return e }
-numberint       "NumberInt"     = "NumberInt" "("     e:string    ")" { return e }
-maxkey          "MaxKey"        = "MaxKey" "("        e:string    ")" { return e }
-minkey          "MinKey"        = "MinKey" "("        e:string    ")" { return e }
-date            "Date"          = "Date" "("          e:string    ")" { return e }
-regexp          "RegExp"        = "RegExp" "("        e:string    ")" { return e }
-undefined       "Undefined"     = "Undefined" "("     e:string    ")" { return e }
+code            "Code"          = "Code"              s:anything    { return 'Code(' + s + ')' }
+oid             "ObjectId"      = "ObjectId"          e:anything    { return 'ObjectId(' + e + ')' }
+binary          "Binary"        = "Binary"            e:anything    { return 'Binary(' + e + ')' }
+dbref           "DBRef"         = "DBRef"             e:anything    { return 'DBRef(' + e + ')' }
+timestamp       "Timestamp"     = "Timestamp"         e:anything    { return 'Timestamp(' + e + ')' }
+numberlong      "NumberLong"    = "NumberLong"        e:anything    { return 'NumberLong(' + e + ')' }
+numberdecimal   "NumberDecimal" = "NumberDecimal"     e:anything    { return 'NumberDecimal(' + e + ')' }
+numberint       "NumberInt"     = "NumberInt"         e:anything    { return 'NumberInt(' + e + ')' }
+maxkey          "MaxKey"        = "MaxKey"            e:anything    { return 'MaxKey(' + e + ')' }
+minkey          "MinKey"        = "MinKey"            e:anything    { return 'MinKey(' + e + ')' }
+date            "Date"          = "Date"              e:anything    { return 'Date(' + e + ')' }
+regexp          "RegExp"        = "RegExp"            e:anything    { return 'RegExp(' + e + ')' }
+undefined       "Undefined"     = "Undefined"         e:anything    { return 'Undefined(' + e + ')' }
 
 //////////////
 // LITERALS //
@@ -797,6 +799,14 @@ string "String"
   = '"' chars:DoubleStringCharacter* '"' { return chars.join(''); }
   / "'" chars:SingleStringCharacter* "'" { return chars.join(''); }
 
+anything
+  = "(" text:TextUntilTerminator ")" { return text.join(""); }
+
+TextUntilTerminator
+  = x:(&HaveTerminatorAhead .)* { return x.map(y => y[1]) }
+
+HaveTerminatorAhead
+  = . (!")" .)* ")"
 
 // Float must come before integer or integer will be matched when floats occur
 number "Number" = sign:"-"? digits:[0-9]+ '.' fraction:[0-9]* { return parseFloat(digits.join("") + '.' + fraction.join("")) * (sign === '-' ? -1 : 1) }

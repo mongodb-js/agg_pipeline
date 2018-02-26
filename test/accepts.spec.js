@@ -1216,26 +1216,52 @@ describe('#accepts', () => {
     });
   });
 
-  // TODO: add extended JSON type checking
   describe('Extended JSON Syntax', () => {
-    it('accepts strings', () => {
-      accepts('{test: { ' +
-        '   x: Code("xxx"),' +
-        '   x: ObjectId("xxx"),' +
-        '   x: Binary("xxx"),' +
-        '   x: DBRef("xxx"),' +
-        '   x: Timestamp("xxx"),' +
-        '   x: NumberLong("xxx"),' +
-        '   x: NumberInt("xxx"),' +
-        '   x: NumberDecimal("xxx"),' +
-        '   x: MaxKey("xxx"),' +
-        '   x: MinKey("xxx"),' +
-        '   x: Date("xxx"),' +
-        '   x: RegExp("xxx"),' +
-        '   x: Undefined("xxx")' +
+    it('accepts Code', () => {
+      accepts('{ $addFields: { x: Code("xxx") } }');
+    });
+    it('accepts ObjectId', () => {
+      accepts('{ $addFields: {' +
+        '   x: ObjectId("53c2b570c15c457669f481f7"),' +
+        '   x: ObjectId(\'53c2b570c15c457669f481f7\'),' +
+        '   x: ObjectId(53c2b570c15c457669f481f7),' +
         '}}');
     });
+    it('accepts Binary', () => {
+      accepts('{ $addFields: { x: Binary("SGVs\)bG8gV29ybGQ=", "0"), y: 1 } }');
+    });
+    it('accepts DbRef', () => {
+      accepts('{ $addFields: { x: DBRef("name", ObjectId(1)) } }');
+    });
+    it('accepts Timestamp', () => {
+      accepts('{ $addFields: { x: Timestamp(3456789, NumberInt(100)) } }');
+    });
+    it('accepts NumberLong', () => {
+      accepts('{ $addFields: { x: NumberLong("23456789") } }');
+    });
+    it('accepts NumberInt', () => {
+      accepts('{ $addFields: { x: NumberInt(234567890) } }');
+    });
+    it('accepts NumberDecimal', () => {
+      accepts('{ $addFields: { x: NumberDecimal(234567.23456789) } }');
+    });
+    it('accepts MaxKey', () => {
+      accepts('{ $addFields: { x: MaxKey() } }');
+    });
+    it('accepts MinKey', () => {
+      accepts('{ $addFields: { x: MinKey() } }');
+    });
+    it('accepts Date', () => {
+      accepts('{ $addFields: { x: Date(\'1999-01-01\') } }');
+    });
+    it('accepts RegExp', () => {
+      accepts('{ $addFields: { x: RegExp(\'/^[a-z0-9_-]{3,16}$/)\'))) } }');
+    });
+    it('accepts Undefined', () => {
+      accepts('{ $addFields: { x: Undefined() } }');
+    });
   });
+
   describe('Invalid stage', () => {
     it('rejects an empty stage', () => {
       rejects('{}');
