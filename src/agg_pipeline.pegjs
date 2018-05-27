@@ -413,7 +413,7 @@ redact_document = agg_object / KEEP / PRUNE / DESCEND
 
 replaceRoot "$replaceRoot" = '"$replaceRoot"' { return '$replaceRoot' } / "'$replaceRoot'" { return '$replaceRoot' } / "$replaceRoot"
 newRoot "newRoot" = "newRoot" / "'newRoot'" { return 'newRoot' } / '"newRoot"' { return 'newRoot' }
-replaceRoot_document ="{" n:newRoot ":" o:agg_object "}"
+replaceRoot_document ="{" n:newRoot ":" o:(agg_object / string) "}"
                 {
                   var obj = {}
                   obj[n] = o

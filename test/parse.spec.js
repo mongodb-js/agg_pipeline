@@ -78,6 +78,9 @@ describe('#parse', () => {
     it('$replaceRoot returns an agg expr', () => {
       accepts({ '$replaceRoot': { 'newRoot': {'$abs': 10} } });
     });
+    it('$replaceRoot returns a doc with a string', () => {
+      accepts({ '$replaceRoot': { 'newRoot': '$something' } });
+    });
   });
 
   describe('mix of optional and required fields', () => {
