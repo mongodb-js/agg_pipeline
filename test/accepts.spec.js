@@ -1010,6 +1010,12 @@ describe('#accepts', () => {
       it('accepts one op with quotes', () => {
         accepts('{ $match: { x: {"$lte": 1} } }');
       });
+      it('accepts $match $in with regex', () => {
+        accepts('{ $match: { x: {"$in": [/abc/]} } }');
+      });
+      it('accepts $match $in $regex with regex', () => {
+        accepts('{ $match: { x: {"$regex": /abc/} } }');
+      });
       it('accepts all operators with double quotes', () => {
         accepts('{' +
           '$match: {' +
