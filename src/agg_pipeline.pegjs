@@ -1,6 +1,6 @@
 {
    // remove commas and flatten
-   // this works with our ("," expression*) ","? idiom 
+   // this works with our ("," expression*) ","? idiom
    function cleanAndFlatten(arr) {
       var o = arr.map(part => clean(part))
                  .map(arr => arr[0])
@@ -83,24 +83,24 @@
 }
 
 // We can have just one stage in an aggregation, or we can have an actual pipeline (array)
-start   =      st:stage                                          
+start   =      st:stage
                {
                       return st
                }
         /      pipeline
 
-pipeline = "[" st:stage stArr:("," stage)* ","? "]" 
-            { 
+pipeline = "[" st:stage stArr:("," stage)* ","? "]"
+            {
                 return [st].concat(cleanAndFlatten(stArr))
             }
 
 // this is a dummy rule just so we don't need to write this same
 // action for every stage
 stage = sts:stage_syntax {
-                           var obj = {} 
-                           obj[sts[1]] = sts[3] 
-                           return obj 
-                         } 
+                           var obj = {}
+                           obj[sts[1]] = sts[3]
+                           return obj
+                         }
 
 stage_syntax "AggregationStage" =
           "{" addFields         ":" addFields_document          "}"
@@ -179,13 +179,13 @@ latencyStats "latencyStats" = "latencyStats" / "'latencyStats'" { return 'latenc
 storageStats "storageStats" = "storageStats" / "'storageStats'" { return 'storageStats' } / '"storageStats"' { return 'storageStats' }
 histograms   "histograms"   = "histograms"   / "'histograms'"   { return 'histograms'   } / '"histograms"'   { return 'histograms'   }
 collStats_item = lt:latencyStats  ":" "{" h:histograms ":" b:boolean "}"
-                { 
-                  var obj = {} 
+                {
+                  var obj = {}
                   obj[h] = b
                   return [lt, ":", obj]
                 }
-               / s:storageStats ":" "{" "}" 
-                { 
+               / s:storageStats ":" "{" "}"
+                {
                   return [s, ":", {}]
                 }
                / c:( "count" / "'count'" { return 'count' } / '"count"' { return 'count' } ) ":" "{" "}"
@@ -400,7 +400,7 @@ project "$project"= '"$project"' { return '$project' } / "'$project'" { return '
 project_item =   i:id    ":" e:("0" / "false" / "1" / "true")              { return [i, ':', toBool(e)] }
                / f:field ":" e:("0" / "false" / "1" / "true" / agg_expression) { return [f, ':', toBool(e)] }
 // Project actually must have at least one item
-project_document  = "{" s:project_item sArr:("," project_item)* ","? "}" 
+project_document  = "{" s:project_item sArr:("," project_item)* ","? "}"
     {
         return objOfArray(checkExclusivity([s].concat(cleanAndFlatten(sArr))))
     }
@@ -658,7 +658,7 @@ zip                     "$zip"              = "$zip"             / "'$zip'" { re
 id "_id" = '_id' / "'_id'" { return '_id' } / '"_id"' { return '_id' }
 
 // (though these could just be checked in AST) let/map/functions/etc
-expression = bson_types / number / string / boolean / null / array / object
+expression = bson_types / number / string / boolean / null / array / object / regex_literal
 
 // Expression that can include query operators
 query_expression = query_object / query_array / expression
@@ -675,9 +675,9 @@ array  "Array" = "[""]"
 
 object "Object" = "{""}"
                  { return {} }
-                / "{" oi:object_item oiArr:("," object_item)* ","? "}" 
-                 { 
-                   return objOfArray([oi].concat(cleanAndFlatten(oiArr))) 
+                / "{" oi:object_item oiArr:("," object_item)* ","? "}"
+                 {
+                   return objOfArray([oi].concat(cleanAndFlatten(oiArr)))
                  }
 object_item = f:field ":" e:expression
 
@@ -813,17 +813,49 @@ number "Number" = sign:"-"? digits:[0-9]+ '.' fraction:[0-9]* { return parseFloa
 
 integer "Integer" = positive_integer / "-" i:positive_integer { return -1 * i }
 
-positive_integer "Positive Integer"                                  
+positive_integer "Positive Integer"
   = digits:[0-9]+ { return parseInt(digits.join(""), 10)  }
-                                                         
+
 boolean "Boolean"
   = "true" { return true} / "false" { return false}
 
 null = "null" { return null}
 
-literal = string / number / boolean
+regex_literal "Regex Literal"
+  = "/" body:regex_body "/" flags:regex_flags {
+      return body + flags;
+    }
+
+regex_body
+  = chars:regex_chars {
+      return chars;
+    }
+
+regex_chars
+  = chars:regex_char* { return chars.join(""); }
+
+regex_char
+  = ![\\/[] char_:regex_non_terminator { return char_; }
+
+regex_non_terminator
+  = !regex_line_terminator char_:regex_source_character { return char_; }
+
+regex_flags
+  = ""
+  / "i"
+  / "m"
+  / "x"
+  / "s"
+
+regex_line_terminator
+  = [\n\r\u2028\u2029]
+
+regex_source_character
+  = .
+
+literal = string / number / boolean / regex_literal
 
 _ "whitespace"
   = [ \t\n\r]*
 
-                                                         
+
