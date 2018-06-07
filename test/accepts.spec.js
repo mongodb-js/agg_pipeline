@@ -1260,6 +1260,9 @@ describe('#accepts', () => {
     it('accepts Date', () => {
       accepts('{ $addFields: { x: Date(\'1999-01-01\') } }');
     });
+    it('accepts ISODate', () => {
+      accepts('{ $addFields: { x: ISODate(\'2007-05-25 08:51:27.000\') } }');
+    });
     it('accepts RegExp', () => {
       accepts('{ $addFields: { x: RegExp(\'/^[a-z0-9_-]{3,16}$/)\'))) } }');
     });

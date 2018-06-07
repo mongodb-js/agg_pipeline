@@ -750,6 +750,7 @@ bson_types = code
            / maxkey
            / minkey
            / date
+           / isodate
            / regexp
            / undefined
 
@@ -764,6 +765,7 @@ numberint       "NumberInt"     = "NumberInt"         e:anything    { return 'Nu
 maxkey          "MaxKey"        = "MaxKey"            e:anything    { return 'MaxKey(' + e + ')' }
 minkey          "MinKey"        = "MinKey"            e:anything    { return 'MinKey(' + e + ')' }
 date            "Date"          = "Date"              e:anything    { return 'Date(' + e + ')' }
+isodate         "ISODate"       = "ISODate"           e:anything    { return 'ISODate(' + e + ')' }
 regexp          "RegExp"        = "RegExp"            e:anything    { return 'RegExp(' + e + ')' }
 undefined       "Undefined"     = "Undefined"         e:anything    { return 'Undefined(' + e + ')' }
 
