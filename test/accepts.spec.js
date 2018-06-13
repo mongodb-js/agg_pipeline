@@ -688,6 +688,18 @@ describe('#accepts', () => {
         it('accepts $toString', () => {
           accepts('{$addFields: { name: { $toString: true }}}');
         });
+
+        it('accepts $ltrim', () => {
+          accepts('{$addFields: { name: { $ltrim: { input: "", chars: "" }}}}');
+        });
+
+        it('accepts $rtrim', () => {
+          accepts('{$addFields: { name: { $rtrim: { input: "", chars: "" }}}}');
+        });
+
+        it('accepts $trim', () => {
+          accepts('{$addFields: { name: { $trim: { input: "", chars: "" }}}}');
+        });
       });
     });
 

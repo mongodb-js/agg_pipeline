@@ -493,6 +493,7 @@ accumulator "AccumulatorOperator" = sum
                / stdDevPop
                / stdDevSamp
                / conv_op
+               / str_op
 sum        "$sum"        = "$sum"        / "'$sum'"        { return '$sum'       } / '"$sum"'       { return '$sum'       }
 avg        "$avg"        = "$avg"        / "'$avg'"        { return '$avg'       } / '"$avg"'       { return '$avg'       }
 first      "$first"      = "$first"      / "'$first'"      { return '$first'     } / '"$first"'     { return '$first'     }
@@ -516,7 +517,9 @@ query_operator "QueryOperator" = comp_op
                 / project_op
                 / field
                 / conv_op
+                / str_op
 
+str_op = ltrim / rtrim / trim
 conv_op = convert / toBool / toDate / toDecimal / toDouble / toInt / toLong / toObjectId / toString
 comp_op = eq / gte / gt / in / lte / lt / ne / nin
 log_op = and / not / nor / or
@@ -593,7 +596,11 @@ agg_operator "AggregationOperator" = accumulator
              / setIsSubset / setUnion / split / sqrt / strcasecmp / strLenBytes
              / strLenCP / substrBytes / substrCP / substr / subtract / switch
              / toLower / toUpper / trunc / week / year / zip / accumulator
+             / ltrim / rtrim / trim
 
+ltrim "$ltrim" = "$ltrim" / "'$ltrim'" { return '$ltrim' } / '"$ltrim"' { return '$ltrim' }
+rtrim "$rtrim" = "$rtrim" / "'$rtrim'" { return '$rtrim' } / '"$rtrim"' { return '$rtrim' }
+trim "$trim" = "$trim" / "'$trim'" { return '$trim' } / '"$trim"' { return '$trim' }
 abs                     "$abs"              = "$abs"             / "'$abs'" { return '$abs' }                           / '"$abs"' { return '$abs' }
 add                     "$add"              = (!"$addToField" !"addToSet" "$add") / (!"'$addTofield'" !"'$addToSet'" "'$add'") { return '$add' } / (!'"$addToField"' !'"$addToSet"' '"$add"') { return '$add' }
 allElementsTrue         "$allElementsTrue"  = "$allElementsTrue" / "'$allElementsTrue'" { return '$allElementsTrue' }   / '"$allElementsTrue"' { return '$allElementsTrue' }
