@@ -492,6 +492,7 @@ accumulator "AccumulatorOperator" = sum
                / addToSet
                / stdDevPop
                / stdDevSamp
+               / conv_op
 sum        "$sum"        = "$sum"        / "'$sum'"        { return '$sum'       } / '"$sum"'       { return '$sum'       }
 avg        "$avg"        = "$avg"        / "'$avg'"        { return '$avg'       } / '"$avg"'       { return '$avg'       }
 first      "$first"      = "$first"      / "'$first'"      { return '$first'     } / '"$first"'     { return '$first'     }
@@ -514,8 +515,10 @@ query_operator "QueryOperator" = comp_op
                 / comment
                 / project_op
                 / field
+                / conv_op
 
-comp_op  = eq / gte / gt / in / lte / lt / ne / nin
+conv_op = convert / toBool / toDate / toDecimal / toDouble / toInt / toLong / toObjectId / toString
+comp_op = eq / gte / gt / in / lte / lt / ne / nin
 log_op = and / not / nor / or
 element_op = exists / typeOp
 eval_op = expr / jsonSchema / mod / regex / text / where
@@ -523,6 +526,16 @@ geo_op = geoIntersects / geoWithin / nearSphere / nearOp / minDistanceOp / maxDi
 array_op = all / elemMatch / sizeOp
 bit_op = bitsAllClear / bitsAllSet / bitsAnyClear / bitsAnySet
 project_op = elemMatch / meta / slice
+
+convert "$convert" = "$convert" / "'$convert'" { return '$convert' } / '"$convert"' { return '$convert'}
+toBool "$toBool" = "$toBool" / "'$toBool'" { return '$toBool' } / '"$toBool"' { return '$toBool' }
+toDate "$toDate" = "$toDate" / "'$toDate'" { return '$toDate' } / '"$toDate"' { return '$toDate' }
+toDecimal "$toDecimal" = "$toDecimal" / "'$toDecimal'" { return '$toDecimal' } / '"$toDecimal"' { return '$toDecimal' }
+toDouble "$toDouble" = "$toDouble" / "'$toDouble'" { return '$toDouble' } / '"$toDouble"' { return '$toDouble' }
+toInt "$toInt" = "$toInt" / "'$toInt'" { return '$toInt' } / '"$toInt"' { return '$toInt' }
+toLong "$toLong" = "$toLong" / "'$toLong'" { return '$toLong' } / '"$toLong"' { return '$toLong' }
+toObjectId "$toObjectId" = "$toObjectId" / "'$toObjectId'" { return '$toObjectId' } / '"$toObjectId"' { return '$toObjectId' }
+toString "$toString" = "$toString" / "'$toString'" { return '$toString' } / '"$toString"' { return '$toString' }
 
 lte        "$lte"       = "$lte"       / "'$lte'"       { return '$lte'     } / '"$lte"'      { return '$lte'      }
 gte        "$gte"       = "$gte"       / "'$gte'"       { return '$gte'     } / '"$gte"'      { return '$gte'      }
