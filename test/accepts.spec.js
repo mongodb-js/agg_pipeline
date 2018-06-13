@@ -651,6 +651,56 @@ describe('#accepts', () => {
             '}}');
         });
       });
+
+      context('when supplying conversion operators', () => {
+        it('accepts $convert', () => {
+          accepts('{$addFields: { name: { $convert: { input: true, to: "int"}}}}');
+        });
+
+        it('accepts $toBool', () => {
+          accepts('{$addFields: { name: { $toBool: true }}}');
+        });
+
+        it('accepts $toDate', () => {
+          accepts('{$addFields: { name: { $toDate: true }}}');
+        });
+
+        it('accepts $toDecimal', () => {
+          accepts('{$addFields: { name: { $toDecimal: true }}}');
+        });
+
+        it('accepts $toDouble', () => {
+          accepts('{$addFields: { name: { $toDouble: true }}}');
+        });
+
+        it('accepts $toInt', () => {
+          accepts('{$addFields: { name: { $toInt: true }}}');
+        });
+
+        it('accepts $toLong', () => {
+          accepts('{$addFields: { name: { $toLong: true }}}');
+        });
+
+        it('accepts $toObjectId', () => {
+          accepts('{$addFields: { name: { $toObjectId: true }}}');
+        });
+
+        it('accepts $toString', () => {
+          accepts('{$addFields: { name: { $toString: true }}}');
+        });
+
+        it('accepts $ltrim', () => {
+          accepts('{$addFields: { name: { $ltrim: { input: "", chars: "" }}}}');
+        });
+
+        it('accepts $rtrim', () => {
+          accepts('{$addFields: { name: { $rtrim: { input: "", chars: "" }}}}');
+        });
+
+        it('accepts $trim', () => {
+          accepts('{$addFields: { name: { $trim: { input: "", chars: "" }}}}');
+        });
+      });
     });
 
     describe('$sort', () => {
