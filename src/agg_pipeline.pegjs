@@ -494,6 +494,7 @@ accumulator "AccumulatorOperator" = sum
                / stdDevSamp
                / conv_op
                / str_op
+               / mergeObjects
 sum        "$sum"        = "$sum"        / "'$sum'"        { return '$sum'       } / '"$sum"'       { return '$sum'       }
 avg        "$avg"        = "$avg"        / "'$avg'"        { return '$avg'       } / '"$avg"'       { return '$avg'       }
 first      "$first"      = "$first"      / "'$first'"      { return '$first'     } / '"$first"'     { return '$first'     }

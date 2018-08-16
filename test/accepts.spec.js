@@ -367,6 +367,9 @@ describe('#accepts', () => {
       it('accepts a group with _id', () => {
         accepts('{ $group: { _id: 1, field1: { $sum: "field" } } }');
       });
+      it('accepts a group with $mergeObjects', () => {
+        accepts('{ $group: { _id: 1, field1: { $mergeObjects: "field" } } }');
+      });
       it('rejects a group without _id', () => {
         rejects('{ $group: { field1: { $sum: "field" } } }');
       });
