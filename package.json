@@ -2,7 +2,7 @@
   "name": "mongodb-stage-validator",
   "description": "Parses and validates MongoDB aggregation pipeline stages.",
   "author": "Anna Herlihy <anna@mongodb.com>",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "homepage": "https://github.com/mongodb-js/stage-validator",
   "repository": {
     "type": "git",
