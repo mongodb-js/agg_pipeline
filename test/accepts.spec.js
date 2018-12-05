@@ -891,6 +891,17 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with multiple ISODate operators and Undefined', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: MaxKey(),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {
