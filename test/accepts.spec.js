@@ -957,6 +957,17 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with multiple ISODate operators and Binary', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: Binary("aksfjksdfhjfjgdasjfhgksd", 1),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {
