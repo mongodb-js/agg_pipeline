@@ -946,6 +946,17 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with multiple ISODate operators and ObjectId', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: ObjectId("aksfjksdfhjfjgdasjfhgksd"),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {
@@ -1426,7 +1437,6 @@ describe('#accepts', () => {
       accepts('{ $addFields: {' +
         '   x: ObjectId("53c2b570c15c457669f481f7"),' +
         '   x: ObjectId(\'53c2b570c15c457669f481f7\'),' +
-        '   x: ObjectId(53c2b570c15c457669f481f7),' +
         '}}');
     });
     it('accepts Binary', () => {

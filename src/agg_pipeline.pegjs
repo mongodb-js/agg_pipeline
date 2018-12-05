@@ -776,7 +776,7 @@ bson_types = code
            / undefined
 
 code            "Code"          = "Code"              s:anything    { return 'Code(' + s + ')' }
-oid             "ObjectId"      = "ObjectId"          e:anything    { return 'ObjectId(' + e + ')' }
+oid             "ObjectId"      = "ObjectId(" e:objectid_value ")"      { return 'ObjectId(' + e + ')' }
 binary          "Binary"        = "Binary"            e:anything    { return 'Binary(' + e + ')' }
 dbref           "DBRef"         = "DBRef"             e:anything    { return 'DBRef(' + e + ')' }
 timestamp       "Timestamp"     = "Timestamp(" e:timestamp_value ")"    { return 'Timestamp(' + e + ')' }
@@ -812,6 +812,9 @@ timestamp_arg
   = integer
   / numberlong
   / numberint
+
+objectid_value
+  = string_with_esc
 
 string_with_esc
   = '"' chars:DoubleStringCharacter* '"' { return checkNotOperator(chars.join('')); }
