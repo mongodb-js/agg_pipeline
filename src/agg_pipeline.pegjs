@@ -780,9 +780,9 @@ oid             "ObjectId"      = "ObjectId"          e:anything    { return 'Ob
 binary          "Binary"        = "Binary"            e:anything    { return 'Binary(' + e + ')' }
 dbref           "DBRef"         = "DBRef"             e:anything    { return 'DBRef(' + e + ')' }
 timestamp       "Timestamp"     = "Timestamp"         e:anything    { return 'Timestamp(' + e + ')' }
-numberlong      "NumberLong"    = "NumberLong"        e:anything    { return 'NumberLong(' + e + ')' }
-numberdecimal   "NumberDecimal" = "NumberDecimal"     e:anything    { return 'NumberDecimal(' + e + ')' }
-numberint       "NumberInt"     = "NumberInt"         e:anything    { return 'NumberInt(' + e + ')' }
+numberlong      "NumberLong"    = "NumberLong(" e:integer_value ")"     { return 'NumberLong(' + e + ')' }
+numberdecimal   "NumberDecimal" = "NumberDecimal(" e:decimal_value ")"  { return 'NumberDecimal(' + e + ')' }
+numberint       "NumberInt"     = "NumberInt(" e:integer_value ")"      { return 'NumberInt(' + e + ')' }
 maxkey          "MaxKey"        = "MaxKey"            e:anything    { return 'MaxKey(' + e + ')' }
 minkey          "MinKey"        = "MinKey"            e:anything    { return 'MinKey(' + e + ')' }
 date            "Date"          = "Date"              e:anything    { return 'Date(' + e + ')' }
@@ -793,6 +793,16 @@ undefined       "Undefined"     = "Undefined"         e:anything    { return 'Un
 //////////////
 // LITERALS //
 //////////////
+
+decimal_value
+  = number
+  / "'" number "'"
+  / '"' number '"'
+
+integer_value
+  = integer
+  / "'" integer "'"
+  / '"' integer '"'
 
 string_with_esc
   = '"' chars:DoubleStringCharacter* '"' { return checkNotOperator(chars.join('')); }

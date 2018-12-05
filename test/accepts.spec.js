@@ -803,6 +803,72 @@ describe('#accepts', () => {
           '}' +
           '}');
       });
+      it('accepts $match with multiple ISODate operators and NumberInt', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: NumberInt(55),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and NumberInt as string', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: NumberInt("55"),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and NumberDecimal with string', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: NumberDecimal("55.5"),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and NumberDecimal with decimal', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: NumberDecimal(55.5),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and NumberLong with string', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: NumberLong("555555555555555555555555"),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and NumberLong with decimal', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: NumberLong(5555555555555555555555555),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {

@@ -4,3 +4,4 @@
 .zuul.yml
 examples/
 test/
+.swp
