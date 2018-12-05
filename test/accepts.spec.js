@@ -869,6 +869,28 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with multiple ISODate operators and MinKey', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: MinKey(),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and MaxKey', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: MaxKey(),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {
