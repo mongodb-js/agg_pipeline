@@ -785,8 +785,8 @@ numberdecimal   "NumberDecimal" = "NumberDecimal(" e:decimal_value ")"  { return
 numberint       "NumberInt"     = "NumberInt(" e:integer_value ")"      { return 'NumberInt(' + e + ')' }
 maxkey          "MaxKey"        = "MaxKey()"                            { return 'MaxKey()' }
 minkey          "MinKey"        = "MinKey()"                            { return 'MinKey()' }
-date            "Date"          = "Date"              e:anything    { return 'Date(' + e + ')' }
-isodate         "ISODate"       = "ISODate"           e:anything    { return 'ISODate(' + e + ')' }
+date            "Date"          = "Date(" e:string ")"                  { return 'Date(' + e + ')' }
+isodate         "ISODate"       = "ISODate(" e:string ")"               { return 'ISODate(' + e + ')' }
 regexp          "RegExp"        = "RegExp"            e:anything    { return 'RegExp(' + e + ')' }
 undefined       "Undefined"     = "Undefined()"                         { return 'Undefined()' }
 

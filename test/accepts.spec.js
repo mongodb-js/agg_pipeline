@@ -902,6 +902,28 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with multiple ISODate operators and Date', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: Date("2014-01-01"),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and ISODate', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: ISODate("2014-01-01"),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {
