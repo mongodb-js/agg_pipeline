@@ -779,7 +779,7 @@ code            "Code"          = "Code"              s:anything    { return 'Co
 oid             "ObjectId"      = "ObjectId"          e:anything    { return 'ObjectId(' + e + ')' }
 binary          "Binary"        = "Binary"            e:anything    { return 'Binary(' + e + ')' }
 dbref           "DBRef"         = "DBRef"             e:anything    { return 'DBRef(' + e + ')' }
-timestamp       "Timestamp"     = "Timestamp"         e:anything    { return 'Timestamp(' + e + ')' }
+timestamp       "Timestamp"     = "Timestamp(" e:timestamp_value ")"    { return 'Timestamp(' + e + ')' }
 numberlong      "NumberLong"    = "NumberLong(" e:integer_value ")"     { return 'NumberLong(' + e + ')' }
 numberdecimal   "NumberDecimal" = "NumberDecimal(" e:decimal_value ")"  { return 'NumberDecimal(' + e + ')' }
 numberint       "NumberInt"     = "NumberInt(" e:integer_value ")"      { return 'NumberInt(' + e + ')' }
@@ -803,6 +803,15 @@ integer_value
   = integer
   / "'" integer "'"
   / '"' integer '"'
+
+timestamp_value
+  = timestamp_arg "," timestamp_arg
+  / ""
+
+timestamp_arg
+  = integer
+  / numberlong
+  / numberint
 
 string_with_esc
   = '"' chars:DoubleStringCharacter* '"' { return checkNotOperator(chars.join('')); }

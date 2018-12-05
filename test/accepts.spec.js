@@ -924,6 +924,28 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with multiple ISODate operators and Timestamp with no args', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: Timestamp(),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
+      it('accepts $match with multiple ISODate operators and Timestamp and args', () => {
+        accepts('{' +
+          '$match: {' +
+            'device: Timestamp(1231212312, 1),' +
+            'ts: {' +
+              '$gte: ISODate("2018-10-04T18:30:00.000Z"),' +
+              '$lte: ISODate("2018-10-05T18:29:59.999Z")' +
+            '}' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {
