@@ -775,10 +775,10 @@ bson_types = code
            / regexp
            / undefined
 
-code            "Code"          = "Code"              s:anything    { return 'Code(' + s + ')' }
+code            "Code"          = "Code" s:anything                     { return 'Code(' + s + ')' }
 oid             "ObjectId"      = "ObjectId(" e:objectid_value ")"      { return 'ObjectId(' + e + ')' }
 binary          "Binary"        = "Binary(" e:binary_value ")"          { return 'Binary(' + e + ')' }
-dbref           "DBRef"         = "DBRef"             e:anything    { return 'DBRef(' + e + ')' }
+dbref           "DBRef"         = "DBRef" e:anything                    { return 'DBRef(' + e + ')' }
 timestamp       "Timestamp"     = "Timestamp(" e:timestamp_value ")"    { return 'Timestamp(' + e + ')' }
 numberlong      "NumberLong"    = "NumberLong(" e:integer_value ")"     { return 'NumberLong(' + e + ')' }
 numberdecimal   "NumberDecimal" = "NumberDecimal(" e:decimal_value ")"  { return 'NumberDecimal(' + e + ')' }
@@ -787,7 +787,7 @@ maxkey          "MaxKey"        = "MaxKey()"                            { return
 minkey          "MinKey"        = "MinKey()"                            { return 'MinKey()' }
 date            "Date"          = "Date(" e:string ")"                  { return 'Date(' + e + ')' }
 isodate         "ISODate"       = "ISODate(" e:string ")"               { return 'ISODate(' + e + ')' }
-regexp          "RegExp"        = "RegExp"            e:anything    { return 'RegExp(' + e + ')' }
+regexp          "RegExp"        = "RegExp" e:anything                   { return 'RegExp(' + e + ')' }
 undefined       "Undefined"     = "Undefined()"                         { return 'Undefined()' }
 
 //////////////
@@ -818,6 +818,10 @@ objectid_value
 
 binary_value
   = string_with_esc "," integer_value
+
+regexp_value
+  = string_with_esc ", " string_with_esc
+  / string_with_esc
 
 string_with_esc
   = '"' chars:DoubleStringCharacter* '"' { return checkNotOperator(chars.join('')); }
