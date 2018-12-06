@@ -384,6 +384,7 @@ match "$match" = '"$match"' { return '$match' } / "'$match'" { return '$match' }
 match_item = and   ":" query_array
            / or    ":" query_array
            / expr  ":" query_expression
+           / comment ":" string_with_esc
            / field ":" query_expression
 match_document = "{" "}"
     {

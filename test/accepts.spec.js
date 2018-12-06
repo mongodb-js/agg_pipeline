@@ -968,6 +968,14 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with a $comment', () => {
+        accepts('{' +
+          '$match: {' +
+            'name: "testing",' +
+            '$comment: "looks good"' +
+          '}' +
+        '}');
+      });
     });
 
     describe('$project', () => {
