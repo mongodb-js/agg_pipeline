@@ -234,6 +234,7 @@ facet_document = "{" a:facet_item aArr:("," facet_item)* ","? "}"
 geoNear "$geoNear" = "$geoNear" / "'$geoNear'" { return '$geoNear' } / '"$geoNear"' { return '$geoNear' }
 distanceField "distanceField" = "distanceField" / "'distanceField'" { return 'distanceField' } / '"distanceField"' { return 'distanceField' }
 spherical "spherical" = "spherical" / "'spherical'" { return 'spherical' } / '"spherical"' { return 'spherical' }
+geoKey "key" = "key" / "'key'" { return 'key' } / '"key"' { return 'key' }
 geoLimit "limit" = "limit" / "'limit'" { return 'limit' } / '"limit"' { return 'limit' }
 num "num" = "num" / "'num'" { return 'num' } / '"num"' { return 'num' }
 query "query" = "query" / "'query'" { return 'query' } / '"query"' { return 'query' }
@@ -258,6 +259,7 @@ geoJSON_document = "{" j1:geoJSON_item "," j2:geoJSON_item "}"
 geoNear_item = gn:near ":" gni:near_item
              / gdf:distanceField ":" s:string
              / gs:spherical  ":" b:boolean
+             / gk:geoKey ":" s:string
              / gl:geoLimit ":" i:positive_integer
              / gn:num ":" i:positive_integer
              / gmd:maxDistance ":" n:number

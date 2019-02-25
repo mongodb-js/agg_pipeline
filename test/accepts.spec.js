@@ -266,6 +266,7 @@ describe('#accepts', () => {
             'num: 100,' +
             'uniqueDocs: true,' +
             'maxDistance: 100,' +
+            'key: "location",' +
             'query: {x: 1},' +
             'distanceMultiplier: 100,' +
             'includeLocs: "outputfield",' +
