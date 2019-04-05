@@ -1531,15 +1531,7 @@ describe('#accepts', () => {
       rejects('{$text: {}}');
     });
     it('accepts minimum required', () => {
-      accepts(`{
-  $text:
-    {
-      $search: <string>,
-      $language: <string>,
-      $caseSensitive: <boolean>,
-      $diacriticSensitive: <boolean>
-    }
-}`);
+      accepts('{ $text: { $search: "leche" } }');
     });
     it('accepts $language', () => {
       accepts('{ $text: { $search: "leche", $language: "es" } }');
