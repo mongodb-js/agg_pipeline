@@ -1528,26 +1528,30 @@ describe('#accepts', () => {
    */
   describe('$text', () => {
     it('rejects empty object', () => {
-      rejects('{$text: {}}');
+      rejects('{ $match: {$text: {}} }');
     });
     it('accepts minimum required', () => {
-      accepts('{ $text: { $search: "leche" } }');
+      accepts('{ $match: { $text: { $search: "leche" } } }');
     });
     it('accepts $language', () => {
-      accepts('{ $text: { $search: "leche", $language: "es" } }');
+      accepts('{ $match: { $text: { $search: "leche", $language: "es" } } }');
     });
     it('accepts $caseSensitive', () => {
-      accepts('{ $text: { $search: "Coffee", $caseSensitive: true } }');
       accepts(
-        '{ $text: { $search: ""Café Con Leche"", $caseSensitive: true } }'
+        '{ $match: { $text: { $search: "Coffee", $caseSensitive: true } } }'
+      );
+      accepts(
+        '{ $match: { $text: { $search: ""Café Con Leche"", $caseSensitive: true } } }'
       );
     });
     it('accepts $diacriticSensitive', () => {
-      accepts('{ $text: { $search: "CAFÉ", $diacriticSensitive: true } }');
+      accepts(
+        '{ $match: { $text: { $search: "CAFÉ", $diacriticSensitive: true } } }'
+      );
     });
     it('accepts all options ', () => {
       accepts(
-        '{ $text: { $search: "CAFÉ", $caseSensitive: true, $language: "es", $diacriticSensitive: true } }'
+        '{ $match: { $text: { $search: "CAFÉ", $caseSensitive: true, $language: "es", $diacriticSensitive: true } } }'
       );
     });
   });
