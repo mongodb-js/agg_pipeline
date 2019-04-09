@@ -381,11 +381,37 @@ lookup_document = "{" l:lookup_item lArr:("," lookup_item)* ","? "}"
         return objOfArray([l].concat(cleanAndFlatten(lArr)))
     }
 
+search "$search" = '"$search"' { return '$search' }
+                / "'$search'" { return '$search' }
+                / "$search"
+
+language "$language" = '"$language"' { return '$language' }
+                    / "'$language'" { return '$language' }
+                    / "$language"
+
+case_sensitive "$caseSensitive" = '"$caseSensitive"' { return '$caseSensitive' }
+                                / "'$caseSensitive'" { return '$caseSensitive' }
+                                / "$caseSensitive"
+
+diacritic_sensitive "$diacriticSensitive" = '"$diacriticSensitive"' { return '$diacriticSensitive' }
+                                            / "'$diacriticSensitive'" { return '$diacriticSensitive' }
+                                            / "$diacriticSensitive"
+
+text_item =  search                 ":" string
+             / language             ":" string
+             / case_sensitive       ":" boolean
+             / diacritic_sensitive  ":" boolean
+text_document = "{" t:text_item tArr:("," text_item)* ","? "}"
+    {
+        return objOfArray([t].concat(cleanAndFlatten(tArr)))
+    }
+
 // Match accepts only query operator syntax and document literals.
 match "$match" = '"$match"' { return '$match' } / "'$match'" { return '$match' } / "$match"
 match_item = and   ":" query_array
            / or    ":" query_array
            / expr  ":" query_expression
+           / text  ":" text_document
            / comment ":" string_with_esc
            / field ":" query_expression
 match_document = "{" "}"

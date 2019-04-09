@@ -1234,6 +1234,19 @@ describe('#accepts', () => {
             'e1: {$elemMatch: 1}, f1: {$meta: 1}, g1: {$slice: 1},' +
           '}}');
       });
+      it('accepts $text search', () => {
+        accepts('{' +
+        '$match: {' +
+          '$text:' +
+            '{' +
+              '$search: "string",' +
+              '$language: "en",' +
+              '$caseSensitive: true,' +
+              '$diacriticSensitive: false' +
+            '}' +
+          '}' +
+        '}');
+      });
       it('accepts one op with quotes', () => {
         accepts('{ $match: { x: {"$lte": 1} } }');
       });
