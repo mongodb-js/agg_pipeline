@@ -551,7 +551,7 @@ query_operator "QueryOperator" = comp_op
 
 str_op = ltrim / rtrim / trim
 conv_op = convert / toBool / toDate / toDecimal / toDouble / toInt / toLong / toObjectId / toString
-comp_op = eq / gte / gt / in / lte / lt / ne / nin
+comp_op = eq / gte / gt / in / lte / lt / ne / nin / cond
 log_op = and / not / nor / or
 element_op = exists / typeOp
 eval_op = expr / jsonSchema / mod / regex / text / where

@@ -969,6 +969,29 @@ describe('#accepts', () => {
           '}' +
         '}');
       });
+      it('accepts $match with complex $cond', () => {
+        accepts('{' +
+          '$match: {' +
+            '$expr: {' +
+              '$eq: [' +
+                '"$field1",' +
+                '{' +
+                  '$cond: [' +
+                    '{' +
+                      '$eq: [' +
+                        '"$field2",' +
+                        '"XYZ"' +
+                      ']' +
+                    '},' +
+                    '"$field1",' +
+                    '"ABC"' +
+                  ']' +
+                '}' +
+              ']' +
+            '}' +
+          '}' +
+        '}');
+      });
       it('accepts $match with a $comment', () => {
         accepts('{' +
           '$match: {' +
