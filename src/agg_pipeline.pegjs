@@ -542,7 +542,6 @@ query_operator "QueryOperator" = comp_op
                 / geo_op
                 / array_op
                 / bit_op
-                / array_op
                 / comment
                 / project_op
                 / field
@@ -550,7 +549,7 @@ query_operator "QueryOperator" = comp_op
                 / str_op
 
 str_op = ltrim / rtrim / trim
-conv_op = convert / toBool / toDate / toDecimal / toDouble / toInt / toLong / toObjectId / toString
+conv_op = convert / toBool / toDate / toDecimal / toDouble / toInt / toLong / toObjectId / toString / objectToArray
 comp_op = eq / gte / gt / in / lte / lt / ne / nin / cond
 log_op = and / not / nor / or
 element_op = exists / typeOp
@@ -732,7 +731,7 @@ object "Object" = "{""}"
 object_item = f:field ":" e:expression
 
 /* Any query expression */
-query_object_item = f:query_operator ":" e:query_expression
+query_object_item = query_operator ":" query_expression
 query_array  "QueryArrayExpr" = "[""]"
                  { return [] }
                / "[" e:query_expression eArr:("," query_expression)* ","? "]"
