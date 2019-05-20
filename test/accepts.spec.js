@@ -46,6 +46,58 @@ describe('#accepts', () => {
       });
     });
 
+    describe('$merge', () => {
+      it('accepts a string', () => {
+        accepts('{$merge: "coll"}');
+      });
+
+      it('accepts an object with string into', () => {
+        accepts('{$merge: { into: "coll" }}');
+      });
+
+      it('accepts an object with object into', () => {
+        accepts('{$merge: { into: { db: "db", coll: "coll" }}}');
+      });
+
+      it('accepts an object with string on', () => {
+        accepts('{$merge: { on: "_id" }}');
+      });
+
+      it('accepts an object with array on', () => {
+        accepts('{$merge: { on: ["_id", "name"]}}');
+      });
+
+      it('accepts let with object', () => {
+        accepts('{$merge: { let: { order_item: "$item", order_qty: "$ordered" }}}');
+      });
+
+      it('accepts whenMatched with string', () => {
+        accepts('{$merge: { whenMatched: "replace" }}');
+      });
+
+      it('accepts whenMatched with array', () => {
+        accepts('{$merge: { whenMatched: [{ $match: { name: "test" }}]}}');
+      });
+
+      it('accepts whenNotMatched with string', () => {
+        accepts('{$merge: { whenNotMatched: "discard" }}');
+      });
+    });
+
+    describe('$searchBeta', () => {
+      it('accepts index', () => {
+        accepts('{$searchBeta: { index: "movies" }}');
+      });
+
+      it('accepts search', () => {
+        accepts('{$searchBeta: { search: { query: "godfather" }}}');
+      });
+
+      it('accepts highlight', () => {
+        accepts('{$searchBeta: { highlight: { path: "title" }}}');
+      });
+    });
+
     describe('$out', () => {
       it('accepts a string', () => {
         accepts('{$out: "coll"}');

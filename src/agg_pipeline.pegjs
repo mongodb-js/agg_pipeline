@@ -119,11 +119,13 @@ stage_syntax "AggregationStage" =
         / "{" listSessions      ":" listLocalSessions_document  "}"
         / "{" lookup            ":" lookup_document             "}"
         / "{" match             ":" match_document              "}"
-        / "{" out               ":" string                      "}" // TODO: check is valid collection?
+        / "{" merge             ":" merge_document              "}"
+        / "{" out               ":" string                      "}"
         / "{" project           ":" project_document            "}"
         / "{" redact            ":" redact_document             "}"
         / "{" replaceRoot       ":" replaceRoot_document        "}"
         / "{" sample            ":" sample_document             "}"
+        / "{" searchBeta        ":" search_beta_document        "}"
         / "{" skip              ":" positive_integer            "}"
         / "{" sort              ":" sort_document               "}"
         / "{" sortByCount       ":" sortByCount_document        "}"
@@ -384,6 +386,68 @@ lookup_document = "{" l:lookup_item lArr:("," lookup_item)* ","? "}"
 search "$search" = '"$search"' { return '$search' }
                 / "'$search'" { return '$search' }
                 / "$search"
+
+search_string "search" = '"search"' { return 'search' }
+                       / "'search'" { return 'search' }
+                       / "search"
+
+index "index" = '"index"' { return 'index' }
+              / "'index'" { return 'index' }
+              / "index"
+
+highlight "highlight" = '"highlight"' { return 'highlight' }
+                      / "'highlight'" { return 'highlight' }
+                      / "highlight"
+
+search_beta_item = index ":" string
+                 / search_string ":" object
+                 / highlight ":" object
+
+search_beta_document = "{" s:search_beta_item sArr:("," search_beta_item)* ","? "}"
+    {
+        return objOfArray([s].concat(cleanAndFlatten(sArr)))
+    }
+
+searchBeta "$searchBeta" = '"$searchBeta"' { return '$searchBeta' }
+                         / "'$searchBeta'" { return '$searchBeta' }
+                         / "$searchBeta"
+
+into "into" = '"into"' { return 'into' }
+            / "'into'" { return 'into' }
+            / "into"
+
+on "on" = '"on"' { return 'on' }
+            / "'on'" { return 'on' }
+            / "on"
+
+whenMatched "whenMatched" = '"whenMatched"' { return 'whenMatched' }
+            / "'whenMatched'" { return 'whenMatched' }
+            / "whenMatched"
+
+whenNotMatched "whenNotMatched" = '"whenNotMatched"' { return 'whenNotMatched' }
+            / "'whenNotMatched'" { return 'whenNotMatched' }
+            / "whenNotMatched"
+
+when_matched_item = object / string / pipeline
+on_item = object / string / array
+into_item = string / object
+
+merge_item = into ":" into_item
+           / on   ":" on_item
+           / let_kw  ":" object
+           / whenMatched ":" when_matched_item
+           / whenNotMatched ":" string
+
+merge_document = "{" m:merge_item mArr:("," merge_item)* ","? "}"
+    {
+        return objOfArray([m].concat(cleanAndFlatten(mArr)))
+    }
+    / string
+
+merge "$merge" = '"$merge"' { return '$merge' }
+               / "'$merge'" { return '$merge' }
+               / "$merge"
+
 
 language "$language" = '"$language"' { return '$language' }
                     / "'$language'" { return '$language' }
