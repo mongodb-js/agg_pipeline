@@ -399,9 +399,29 @@ highlight "highlight" = '"highlight"' { return 'highlight' }
                       / "'highlight'" { return 'highlight' }
                       / "highlight"
 
+compound "compound" = '"compound"' { return 'compound' }
+                      / "'compound'" { return 'compound' }
+                      / "compound"
+
+span "span" = '"span"' { return 'span' }
+                      / "'span'" { return 'span' }
+                      / "span"
+
+term "term" = '"term"' { return 'term' }
+                      / "'term'" { return 'term' }
+                      / "term"
+
+exists_string "exists" = '"exists"' { return 'exists' }
+                      / "'exists'" { return 'exists' }
+                      / "exists"
+
 search_beta_item = index ":" string
                  / search_string ":" object
                  / highlight ":" object
+                 / compound ":" object
+                 / span ":" object
+                 / term ":" object
+                 / exists_string ":" object
 
 search_beta_document = "{" s:search_beta_item sArr:("," search_beta_item)* ","? "}"
     {

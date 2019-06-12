@@ -96,6 +96,34 @@ describe('#accepts', () => {
       it('accepts highlight', () => {
         accepts('{$searchBeta: { highlight: { path: "title" }}}');
       });
+
+      it('accepts compound options', () => {
+        accepts('{$searchBeta: { compound: { should: [{ term: { query: "indiana" }}]}}}');
+      });
+
+      it('accepts compound options with term', () => {
+        accepts('{$searchBeta: { compound: { should: [{ term: { query: "indiana", path: "title" }}]}}}');
+      });
+
+      it('accepts compound options with multiple shoulds', () => {
+        accepts('{$searchBeta: { compound: { should: [{ term: { query: "indiana" }}, { search: { query: "jones"}}]}}}');
+      });
+
+      it('accepts term options', () => {
+        accepts('{$searchBeta: { term: { query: "testing" }}}');
+      });
+
+      it('accepts term with index options', () => {
+        accepts('{$searchBeta: { index: "testing", term: { query: "testing" }}}');
+      });
+
+      it('accepts span with index options', () => {
+        accepts('{$searchBeta: { index: "testing", span: { near: {}}}}');
+      });
+
+      it('accepts exists with path options', () => {
+        accepts('{$searchBeta: { index: "testing", exists: { path: "test" }}}');
+      });
     });
 
     describe('$out', () => {
