@@ -794,7 +794,7 @@ id "_id" = '_id' / "'_id'" { return '_id' } / '"_id"' { return '_id' }
 expression = bson_types / number / string / boolean / null / array / object / regex_literal
 
 // Expression that can include query operators
-query_expression = query_object / query_array / expression
+query_expression = query_object / query_array / expression / agg_array
 
 // Expression that can include aggregation operators
 agg_expression = agg_object / agg_array / expression
