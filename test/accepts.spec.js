@@ -890,6 +890,16 @@ describe('#accepts', () => {
             '' +
             '}}');
         });
+        it('accepts UUID', () => {
+          accepts('{$match: {' +
+            'uuid: UUID("test")' +
+            '}}');
+        });
+        it('accepts BinData', () => {
+          accepts('{$match: {' +
+            'uuid: BinData(3, "test")' +
+            '}}');
+        });
         it('accepts accumulators within $or', () => {
           accepts('{$match: {' +
             '$or: [' +

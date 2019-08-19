@@ -875,6 +875,7 @@ field "Field Name"
 bson_types = code
            / oid
            / binary
+           / bindata
            / dbref
            / timestamp
            / numberlong
@@ -883,6 +884,7 @@ bson_types = code
            / maxkey
            / minkey
            / date
+           / uuid
            / isodate
            / regexp
            / undefined
@@ -890,6 +892,7 @@ bson_types = code
 code            "Code"          = "Code" s:anything                     { return 'Code(' + s + ')' }
 oid             "ObjectId"      = "ObjectId(" e:objectid_value ")"      { return 'ObjectId(' + e + ')' }
 binary          "Binary"        = "Binary(" e:binary_value ")"          { return 'Binary(' + e + ')' }
+bindata         "BinData"       = "BinData(" e:bindata_value ")"        { return 'BinData(' + e + ')' }
 dbref           "DBRef"         = "DBRef" e:anything                    { return 'DBRef(' + e + ')' }
 timestamp       "Timestamp"     = "Timestamp(" e:timestamp_value ")"    { return 'Timestamp(' + e + ')' }
 numberlong      "NumberLong"    = "NumberLong(" e:integer_value ")"     { return 'NumberLong(' + e + ')' }
@@ -898,6 +901,7 @@ numberint       "NumberInt"     = "NumberInt(" e:integer_value ")"      { return
 maxkey          "MaxKey"        = "MaxKey()"                            { return 'MaxKey()' }
 minkey          "MinKey"        = "MinKey()"                            { return 'MinKey()' }
 date            "Date"          = "Date(" e:string ")"                  { return 'Date(' + e + ')' }
+uuid            "UUID"          = "UUID(" e:string ")"                  { return 'UUID(' + e + ')' }
 isodate         "ISODate"       = "ISODate(" e:string ")"               { return 'ISODate(' + e + ')' }
 regexp          "RegExp"        = "RegExp" e:anything                   { return 'RegExp(' + e + ')' }
 undefined       "Undefined"     = "Undefined()"                         { return 'Undefined()' }
@@ -930,6 +934,9 @@ objectid_value
 
 binary_value
   = string_with_esc "," integer_value
+
+bindata_value
+  = integer_value "," string_with_esc
 
 regexp_value
   = string_with_esc ", " string_with_esc
