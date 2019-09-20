@@ -1420,6 +1420,12 @@ describe('#accepts', () => {
         it('accepts $match $in $regex with regex', () => {
           accepts('{ $match: { x: {"$regex": /abc/} } }');
         });
+        it('accepts $match with $not $regex', () => {
+          accepts('{ $match: { x: { $not: {"$regex": /abc/}}}}');
+        });
+        it('accepts $match with $not with regex', () => {
+          accepts('{ $match: { x: { $not: /abc/ }}}');
+        });
         it('accepts $match $expr with $objectToArray', () => {
           accepts('{ $match: { $expr: { $gt: [{ $size: { $objectToArray: "$tab_map" } }, 0] } } }');
         });
