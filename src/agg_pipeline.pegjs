@@ -888,6 +888,7 @@ bson_types = code
            / isodate
            / regexp
            / undefined
+           / nan
 
 code            "Code"          = "Code" s:anything                     { return 'Code(' + s + ')' }
 oid             "ObjectId"      = "ObjectId(" e:objectid_value ")"      { return 'ObjectId(' + e + ')' }
@@ -905,6 +906,7 @@ uuid            "UUID"          = "UUID(" e:string ")"                  { return
 isodate         "ISODate"       = "ISODate(" e:string ")"               { return 'ISODate(' + e + ')' }
 regexp          "RegExp"        = "RegExp" e:anything                   { return 'RegExp(' + e + ')' }
 undefined       "Undefined"     = "Undefined()"                         { return 'Undefined()' }
+nan             "NaN"           = "NaN"                                 { return 'NaN' }
 
 //////////////
 // LITERALS //

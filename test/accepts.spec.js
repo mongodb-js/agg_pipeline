@@ -1131,6 +1131,10 @@ describe('#accepts', () => {
         it('accepts $match with $and and date comparisons', () => {
           accepts('[{ $match: { $and: [{ participant: { $in: [1,2]}}, { date: ISODate("2019-06-07")}]}}]');
         });
+
+        it('accepts $match with NaN', () => {
+          accepts('[ { "$match" : { "src_airport":  NaN }} ]');
+        });
       });
 
       describe('$project', () => {
