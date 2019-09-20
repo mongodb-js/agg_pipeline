@@ -888,7 +888,6 @@ bson_types = code
            / isodate
            / regexp
            / undefined
-           / nan
 
 code            "Code"          = "Code" s:anything                     { return 'Code(' + s + ')' }
 oid             "ObjectId"      = "ObjectId(" e:objectid_value ")"      { return 'ObjectId(' + e + ')' }
@@ -906,7 +905,6 @@ uuid            "UUID"          = "UUID(" e:string ")"                  { return
 isodate         "ISODate"       = "ISODate(" e:string ")"               { return 'ISODate(' + e + ')' }
 regexp          "RegExp"        = "RegExp" e:anything                   { return 'RegExp(' + e + ')' }
 undefined       "Undefined"     = "Undefined()"                         { return 'Undefined()' }
-nan             "NaN"           = "NaN"                                 { return 'NaN' }
 
 //////////////
 // LITERALS //
@@ -983,6 +981,11 @@ HaveTerminatorAhead
 // Float must come before integer or integer will be matched when floats occur
 number "Number" = sign:"-"? digits:[0-9]+ '.' fraction:[0-9]* { return parseFloat(digits.join("") + '.' + fraction.join("")) * (sign === '-' ? -1 : 1) }
        / integer
+       / nan
+       / infinity
+
+nan "NaN" = "NaN"
+infinity "Infinity" = "Infinity" / "-Infinity"
 
 integer "Integer" = positive_integer / "-" i:positive_integer { return -1 * i }
 

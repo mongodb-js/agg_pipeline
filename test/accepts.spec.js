@@ -1135,6 +1135,12 @@ describe('#accepts', () => {
         it('accepts $match with NaN', () => {
           accepts('[ { "$match" : { "src_airport":  NaN }} ]');
         });
+        it('accepts $match with Infinity', () => {
+          accepts('[ { "$match" : { "src_airport":  Infinity }} ]');
+        });
+        it('accepts $match with -Infinity', () => {
+          accepts('[ { "$match" : { "src_airport":  -Infinity }} ]');
+        });
       });
 
       describe('$project', () => {
