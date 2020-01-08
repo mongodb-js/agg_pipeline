@@ -1,12 +1,7 @@
-.jshintrc
-.jsfmtrc
 .travis.yml
-.zuul.yml
 .babelrc
 .eslintrc
-.jshintignore
 src/
 misc/
-examples/
 test/
 .swp
