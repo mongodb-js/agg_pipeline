@@ -18,8 +18,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "ci": "npm run check && npm test",
-    "test": "npm run compile && mocha --compilers js:babel-register",
+    "test": "mocha",
     "compile": "npm run babel && npm run pegjs",
     "babel": "babel ./src --out-dir ./lib",
     "pegjs": "pegjs -o ./lib/parser.js < ./src/agg_pipeline.pegjs",
