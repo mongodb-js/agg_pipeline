@@ -1,7 +1,5 @@
 .travis.yml
-.babelrc
 .eslintrc
-src/
 misc/
 test/
 .swp
