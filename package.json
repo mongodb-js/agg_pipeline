@@ -21,6 +21,7 @@
     "test": "mocha",
     "compile": "npm run pegjs",
     "pegjs": "pegjs -o ./agg_pipeline_parser.js < ./agg_pipeline.pegjs",
+    "precheck": "npm run compile",
     "check": "mongodb-js-precommit",
     "prepublishOnly": "npm run compile",
     "pretest": "npm run compile"
