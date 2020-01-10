@@ -8,3 +8,4 @@ coverage
 *.iml
 lib/
 *.swp
+agg_pipeline_parser.js

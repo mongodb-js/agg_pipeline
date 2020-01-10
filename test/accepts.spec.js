@@ -1,6 +1,6 @@
 const chai = require('chai');
 const expect = chai.expect;
-const acceptStage = require('../lib').accepts;
+const acceptStage = require('../').accepts;
 
 function accepts(str) {
   expect(acceptStage(str)).to.equal(true);
