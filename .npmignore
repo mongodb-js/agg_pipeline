@@ -1,5 +1,6 @@
 .travis.yml
 .eslintrc
+.eslintignore
 misc/
 test/
 .swp
